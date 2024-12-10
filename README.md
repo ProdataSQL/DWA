@@ -4,4 +4,4 @@ Welcome to the [Prodata](https://www.prodata.ie) open source library for Fabric 
 No this is not a product! but you can contact us to help build your own data warehouse or analytics solution using these syle of templates combined with our automation Framework
 
 ## Sample Notebook Templates
-* [Ingest-SFTP][(https://github.com/ProdataSQL/SynapseTools/blob/main/SqlPools/Maintenance/MaintenanceSolution.sql](https://github.com/ProdataSQL/DWA/blob/main/Library/Ingest/Ingest-SFTP.ipynb))
+* [Ingest-SFTP](https://github.com/ProdataSQL/DWA/blob/main/Library/Ingest/Ingest-SFTP.ipynb). 
