@@ -1,0 +1,114 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "Copy-SFTP-Prodata",
+        "type": "Copy",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "source": {
+            "type": "BinarySource",
+            "storeSettings": {
+              "type": "SftpReadSettings",
+              "recursive": {
+                "value": "@if(contains(json(string(pipeline().parameters.SourceSettings)),'Recurisve'), bool(json(string(pipeline().parameters.SourceSettings)).Recurisve), false)",
+                "type": "Expression"
+              },
+              "wildcardFolderPath": {
+                "value": "@json(string(pipeline().parameters.SourceSettings)).Directory",
+                "type": "Expression"
+              },
+              "wildcardFileName": {
+                "value": "@json(string(pipeline().parameters.SourceSettings)).File",
+                "type": "Expression"
+              },
+              "disableChunking": false
+            },
+            "formatSettings": {
+              "type": "BinaryReadSettings"
+            },
+            "datasetSettings": {
+              "annotations": [],
+              "type": "Binary",
+              "typeProperties": {
+                "location": {
+                  "type": "SftpLocation"
+                }
+              },
+              "externalReferences": {
+                "connection": "1a8439c4-a50b-4ef5-82d2-d150be2f91f7"
+              }
+            }
+          },
+          "sink": {
+            "type": "BinarySink",
+            "storeSettings": {
+              "type": "LakehouseWriteSettings",
+              "copyBehavior": "PreserveHierarchy"
+            },
+            "datasetSettings": {
+              "annotations": [],
+              "linkedService": {
+                "name": "FabricLH",
+                "properties": {
+                  "annotations": [],
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "workspaceId": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+                    "artifactId": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+                    "rootFolder": "Files"
+                  }
+                }
+              },
+              "type": "Binary",
+              "typeProperties": {
+                "location": {
+                  "type": "LakehouseLocation",
+                  "folderPath": {
+                    "value": "@json(string(pipeline().parameters.TargetSettings)).Directory",
+                    "type": "Expression"
+                  }
+                }
+              }
+            }
+          },
+          "enableStaging": false
+        }
+      }
+    ],
+    "parameters": {
+      "SourceSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Directory": "/aw/",
+          "File": "*.*"
+        }
+      },
+      "TargetSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Directory": "landing/AdventureWorks/erp"
+        }
+      },
+      "SourceConnectionSettings": {
+        "type": "string"
+      },
+      "TargetConnectionSettings": {
+        "type": "string"
+      },
+      "ActivitySettings": {
+        "type": "string"
+      },
+      "LineageKey": {
+        "type": "string"
+      }
+    }
+  }
+}
