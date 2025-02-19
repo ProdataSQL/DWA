@@ -1,0 +1,169 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "ForEach Config Table",
+        "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "Lookup Config table names",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "items": {
+            "value": "@activity('Lookup Config table names').output.resultsets[0].rows\n",
+            "type": "Expression"
+          },
+          "isSequential": false,
+          "activities": [
+            {
+              "name": "Copy Config File",
+              "type": "Copy",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
+              "typeProperties": {
+                "source": {
+                  "type": "AzureSqlSource",
+                  "queryTimeout": "02:00:00",
+                  "partitionOption": "None",
+                  "datasetSettings": {
+                    "annotations": [],
+                    "type": "AzureSqlTable",
+                    "schema": [],
+                    "typeProperties": {
+                      "schema": "config",
+                      "table": {
+                        "value": "@item().name",
+                        "type": "Expression"
+                      },
+                      "database": "Meta-4adf8914-0560-45ec-a3c3-597b6b5c9294"
+                    },
+                    "externalReferences": {
+                      "connection": "0671021a-d6d5-419f-aa67-db34883877a7"
+                    }
+                  }
+                },
+                "sink": {
+                  "type": "ParquetSink",
+                  "storeSettings": {
+                    "type": "LakehouseWriteSettings"
+                  },
+                  "formatSettings": {
+                    "type": "ParquetWriteSettings",
+                    "enableVertiParquet": true
+                  },
+                  "datasetSettings": {
+                    "annotations": [],
+                    "linkedService": {
+                      "name": "FabricLH",
+                      "properties": {
+                        "annotations": [],
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "workspaceId": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+                          "artifactId": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+                          "rootFolder": "Files"
+                        }
+                      }
+                    },
+                    "type": "Parquet",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "fileName": {
+                          "value": "@{concat(item().Name,'.parquet')}",
+                          "type": "Expression"
+                        },
+                        "folderPath": {
+                          "value": "backup/config/@{formatDateTime(utcnow(),'yyyyMMdd')}",
+                          "type": "Expression"
+                        }
+                      },
+                      "compressionCodec": "snappy"
+                    },
+                    "schema": []
+                  }
+                },
+                "enableStaging": false,
+                "translator": {
+                  "type": "TabularTranslator",
+                  "typeConversion": true,
+                  "typeConversionSettings": {
+                    "allowDataTruncation": true,
+                    "treatBooleanAsNumber": false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Get Env Variables",
+        "type": "ExecutePipeline",
+        "state": "Inactive",
+        "onInactiveMarkAs": "Succeeded",
+        "dependsOn": [],
+        "policy": {
+          "secureInput": false
+        },
+        "typeProperties": {
+          "waitOnCompletion": true,
+          "parameters": {}
+        }
+      },
+      {
+        "name": "Lookup Config table names",
+        "type": "Script",
+        "dependsOn": [
+          {
+            "activity": "Get Env Variables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "linkedService": {
+          "name": "cfdc1165_b6ab_4247_a609_a2ecaa5d128b",
+          "properties": {
+            "annotations": [],
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
+              "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
+              "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+            }
+          }
+        },
+        "typeProperties": {
+          "scripts": [
+            {
+              "type": "Query",
+              "text": {
+                "value": "config.usp_GetTables",
+                "type": "Expression"
+              }
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        }
+      }
+    ]
+  }
+}
