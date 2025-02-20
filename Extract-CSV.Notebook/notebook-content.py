@@ -18,7 +18,7 @@
 # PARAMETERS CELL ********************
 
 SourceSettings = '{"Directory": "landing/aw/", "File": "*.csv"}' # "condition" : "target.RowChecksum = source.RowChecksum","mode":"merge"
-TargetSettings = '{"SchemaName":"aw", "mode":"overwrite"}'
+TargetSettings = '{"SchemaName":"aw_stg", "mode":"overwrite"}'
 SourceConnectionSettings = None
 SinkConnectionSettings = None
 ActivitySettings = '{"with_checksum" : false, "dedupe": false, "ArchiveDirectory":"raw/aw"}' 

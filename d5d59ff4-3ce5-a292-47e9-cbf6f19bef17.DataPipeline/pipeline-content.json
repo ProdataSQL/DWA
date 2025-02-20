@@ -95,7 +95,7 @@
                       {
                         "type": "SqlServerStoredProcedure",
                         "typeProperties": {
-                          "storedProcedureName": "[dwa].[usp_TableLoad]",
+                          "storedProcedureName": "dwa.usp_TableLoad",
                           "storedProcedureParameters": {
                             "TableID": {
                               "value": {
@@ -107,13 +107,13 @@
                           }
                         },
                         "linkedService": {
-                          "name": "FabricDW",
+                          "name": "DW",
                           "properties": {
                             "type": "DataWarehouse",
                             "typeProperties": {
-                              "artifactId": "bcce3d58-a448-4611-8f92-93653bf8f712",
-                              "endpoint": "fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.fabric.microsoft.com",
-                              "workspaceId": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
+                              "artifactId": "c7786002-b337-4799-81be-2243e2ce0200",
+                              "endpoint": "fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com",
+                              "workspaceId": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
                             },
                             "annotations": []
                           }
@@ -137,11 +137,26 @@
                         "type": "InvokePipeline",
                         "typeProperties": {
                           "parameters": {
-                            "SourceContainer": "unittest",
-                            "SourceDirectory": "AW-Test",
-                            "SourceObject": "Date.csv",
-                            "TargetDirectory": "temp/AW-Test",
-                            "Delete": false
+                            "SourceSettings": {
+                              "value": "@item().SourceSettings",
+                              "type": "Expression"
+                            },
+                            "TargetSettings": {
+                              "value": "@item().TargetSettings",
+                              "type": "Expression"
+                            },
+                            "SourceConnectionSettings": {
+                              "value": "@item().SourceConnectionSettings",
+                              "type": "Expression"
+                            },
+                            "TargetConnectionSettings": {
+                              "value": "@item().TargetConnectionSettings",
+                              "type": "Expression"
+                            },
+                            "ActivitySettings": {
+                              "value": "@item().ActivitySettings",
+                              "type": "Expression"
+                            }
                           },
                           "waitOnCompletion": true,
                           "workspaceId": {
@@ -206,7 +221,6 @@
                   {
                     "type": "SqlServerStoredProcedure",
                     "typeProperties": {
-                      "database": "FabricDW",
                       "storedProcedureName": "[dwa].[usp_PipelinePostExecute]",
                       "storedProcedureParameters": {
                         "PostExecuteSQL": {
@@ -218,8 +232,17 @@
                         }
                       }
                     },
-                    "externalReferences": {
-                      "connection": "f6f0525b-079f-4f44-ba03-84468136db8f"
+                    "linkedService": {
+                      "name": "DW",
+                      "properties": {
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                          "artifactId": "c7786002-b337-4799-81be-2243e2ce0200",
+                          "endpoint": "fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com",
+                          "workspaceId": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+                        },
+                        "annotations": []
+                      }
                     },
                     "policy": {
                       "timeout": "0.12:00:00",
