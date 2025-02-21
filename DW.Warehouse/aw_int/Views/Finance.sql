@@ -7,13 +7,13 @@
 CREATE VIEW [aw_int].[Finance] AS 
 SELECT CONVERT(VARCHAR(8),CONVERT(DATE,CONVERT(VARCHAR(10),f.[AccountDate])),112) AS DateKey
 	, f.[AccountCode] AS [AccountCodeAlternateKey]
-	, f.[AccountDate] COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 as [Date]
-	, CONVERT(VARCHAR(50), f.[OrganizationName] COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS OrganizationName
-	, CONVERT(VARCHAR(50), f.[DepartmentGroupName] COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS DepartmentGroupName
-	, CONVERT(VARCHAR(50), f.ScenarioName COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS ScenarioName
+	, f.[AccountDate] as [Date]
+	, CONVERT(VARCHAR(50), f.[OrganizationName]) AS OrganizationName
+	, CONVERT(VARCHAR(50), f.[DepartmentGroupName]) AS DepartmentGroupName
+	, CONVERT(VARCHAR(50), f.ScenarioName) AS ScenarioName
 	, SUM(CONVERT(DECIMAL(20, 6), isnull(f.[Amount], 0))) AS Amount
-	, CONVERT(VARCHAR(512), f.[FileName] COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS FileName
-	, ISNULL(CONVERT(VARCHAR(36), f.LineageKey COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8), 0) AS  LineageKey
+	, CONVERT(VARCHAR(512), f.[FileName]) AS FileName
+	, ISNULL(CONVERT(VARCHAR(36), f.LineageKey), 0) AS  LineageKey
 	, row_number() OVER (PARTITION BY [AccountDate], [DepartmentGroupName], [ScenarioName],[OrganizationName], [AccountCode] ORDER BY f.LineageKey DESC) AS RowVersionNo
 	, ISNULL(CONVERT(BIGINT, BINARY_CHECKSUM([AccountDate], [AccountCode], [OrganizationName], [DepartmentGroupName], ScenarioName, SUM(convert(DECIMAL(16, 6), f.[Amount]) ))), 0) AS RowChecksum
 FROM LH.aw_stg.transactions f

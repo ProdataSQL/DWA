@@ -1,11 +1,12 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
-    "type": "SemanticModel",
-    "displayName": "Finance-GL"
+    "type": "Notebook",
+    "displayName": "Refresh-Fabric",
+    "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "9fc3880a-fe36-bba6-4ecb-bccffe4cafa4"
+    "logicalId": "0bb49457-d28f-ac09-481b-15ab2c2551e3"
   }
 }

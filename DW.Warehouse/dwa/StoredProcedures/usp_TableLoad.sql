@@ -68,7 +68,11 @@ BEGIN
 		, @RelatedTableCount smallint =0
 		, @VarHideCols VARCHAR(4000) --Temp Variable to store hide columns value
 		, @IsSchemaDrift bit
-		, @IsIncremental bit;
+		, @IsIncremental bit
+		, @ForceCollation bit = 0
+		, @ColumnsCollation varchar(512) = NULL
+		, @SourceCollation sysname
+		, @TargetCollation sysname;
 
 	IF @TableID IS NULL
 		SELECT @TableID = t.TableID FROM Meta.config.edwTables t WHERE ((t.SchemaName + '.' +  t.TableName = @TargetObject) OR t.TableName =@TargetObject);
@@ -209,12 +213,23 @@ BEGIN
 			IF NOT EXISTS (SELECT * from sys.columns c WHERE object_id=object_id(@SourceObject) and c.name='RowChecksum') 
 				SET @UpdateFlag=0;
 		
+		/* Check if collation between LH and DW is different */
+		SELECT @TargetCollation = CONVERT(sysname, DATABASEPROPERTYEX(db_name(), 'Collation'))
+		SELECT TOP 1 @SourceCollation = collation_name FROM sys.columns 
+			   WHERE object_id = object_id(@SourceObject) AND collation_name IS NOT NULL AND collation_name <> @TargetCollation
+		SELECT @ColumnsCollation = STRING_AGG(name, ',') FROM sys.columns 
+			   WHERE object_id = object_id(@SourceObject) AND collation_name IS NOT NULL AND collation_name <> @TargetCollation
+		IF COALESCE(@SourceCollation, @TargetCollation) <> @TargetCollation
+			SET @ForceCollation = 1
+
 		IF @DeDupeRows=1
 			SET @HideColumns =coalesce(@HideColumns + ',','')  + 'RowVersionNo';
 
-		;WITH r as (
+		;WITH s AS(
+			SELECT value as colname FROM string_split(@ColumnsCollation, ',')
+		), r AS (
 			SELECT r.TableID AS RelatedTableID
-				, coalesce(j.JoinSQL, string_agg(@TablePrefix + '.' + ltrim(bk.value) + '=' + coalesce(r.TablePrefix, lower(left(replace(r.TableName, 'Dim', ''), 1))) + '.' + ltrim(bk.value), ' AND ')) fk
+				, coalesce(j.JoinSQL, string_agg(@TablePrefix + '.' + ltrim(bk.value) + CASE WHEN @ForceCollation = 1 AND s.colname IS NOT NULL THEN ' COLLATE ' + @TargetCollation  ELSE '' END + ' = ' + coalesce(r.TablePrefix, lower(left(replace(r.TableName, 'Dim', ''), 1))) + '.' + ltrim(bk.value), ' AND ')) fk
 				, r.BusinessKeys, r.SchemaName, r.TableName, r.PrimaryKey
 				, min(coalesce(r.TablePrefix, lower(left(replace(r.TableName, 'Dim', ''), 1)))) TablePrefix
 				, min(coalesce(j.JoinSQL, 't.' + ltrim(r.PrimaryKey) + '=' + coalesce(r.TablePrefix, lower(left(replace(r.TableName, 'Dim', ''), 1))) + '.' + ltrim(r.PrimaryKey))) WhereJoinSQL
@@ -222,6 +237,7 @@ BEGIN
 			FROM Meta.config.edwTables r
 			INNER JOIN Meta.config.edwTableJoins j ON j.RelatedTableID = r.TableID
 			CROSS APPLY string_split(r.BusinessKeys, ',') bk
+			LEFT JOIN s ON s.colname = bk.value --To check for columns that needed collation
 			WHERE j.TableID = @TableID
 			GROUP BY r.TableID, r.BusinessKeys  , r.SchemaName, r.TableName, r.PrimaryKey, j.JoinSQL, j.JoinType
 		), t AS (
@@ -281,7 +297,7 @@ BEGIN
 
 		SELECT @PrimaryKey = coalesce(@PrimaryKey, replace(@TargetTable, 'Dim','') + 'Key')
 		,@InsertColumns = case when @InsertColumns is null then '' else @InsertColumns + ',' end + (SELECT string_agg( c.name, ',') FROM sys.columns c WHERE c.object_id = object_id(@SourceObject) and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns,','))   )
-		,@SelectColumns = case when @SelectColumns is null then '' else @SelectColumns + ',' end + (SELECT string_agg(  @TablePrefix + '.' + c.name, ',') FROM sys.columns c WHERE c.object_id = object_id(@SourceObject)  and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns ,',')  ) )
+		,@SelectColumns = case when @SelectColumns is null then '' else @SelectColumns + ',' end + (SELECT string_agg(  @TablePrefix + '.' + c.name + CASE WHEN @ForceCollation = 1 AND c.collation_name <> @TargetCollation THEN ' COLLATE ' + @TargetCollation + ' AS ' + c.name ELSE '' END, ',') FROM sys.columns c WHERE c.object_id = object_id(@SourceObject)  and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns ,',')  ) )
 
 		IF @PrestageSourceFlag=1
 			BEGIN

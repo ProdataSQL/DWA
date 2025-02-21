@@ -1919,6 +1919,115 @@
         ]
       },
       {
+        "name": "DimDepartmentGroup",
+        "sourceLineageTag": "[aw].[DimDepartmentGroup]",
+        "columns": [
+          {
+            "name": "DepartmentGroupKey",
+            "dataType": "string",
+            "sourceColumn": "DepartmentGroupKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "DepartmentGroupKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ParentDepartmentGroupKey",
+            "dataType": "string",
+            "sourceColumn": "ParentDepartmentGroupKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ParentDepartmentGroupKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "DepartmentGroupName",
+            "dataType": "string",
+            "sourceColumn": "DepartmentGroupName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "DepartmentGroupName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RowChecksum",
+            "dataType": "int64",
+            "sourceColumn": "RowChecksum",
+            "formatString": "0",
+            "sourceProviderType": "bigint",
+            "sourceLineageTag": "RowChecksum",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "FileName",
+            "dataType": "string",
+            "sourceColumn": "FileName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FileName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LineageKey",
+            "dataType": "string",
+            "sourceColumn": "LineageKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "LineageKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "{{Partition_Name}}",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "DimDepartmentGroup",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "aw"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "IsTableInBiModel",
+            "value": "False"
+          }
+        ]
+      },
+      {
         "name": "DimOrganization",
         "sourceLineageTag": "[aw].[DimOrganization]",
         "columns": [
@@ -2351,20 +2460,6 @@
             ]
           },
           {
-            "name": "OrganizationName",
-            "dataType": "string",
-            "sourceColumn": "OrganizationName",
-            "sourceProviderType": "varchar",
-            "sourceLineageTag": "OrganizationName",
-            "summarizeBy": "none",
-            "annotations": [
-              {
-                "name": "SummarizationSetBy",
-                "value": "Automatic"
-              }
-            ]
-          },
-          {
             "name": "DepartmentGroupName",
             "dataType": "string",
             "sourceColumn": "DepartmentGroupName",
@@ -2461,6 +2556,20 @@
             "sourceProviderType": "bigint",
             "sourceLineageTag": "RowVersionNo",
             "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "OrganizationName",
+            "dataType": "string",
+            "sourceColumn": "OrganizationName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "OrganizationName",
+            "summarizeBy": "none",
             "annotations": [
               {
                 "name": "SummarizationSetBy",
