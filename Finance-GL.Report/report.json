@@ -65,15 +65,6 @@
           "z": 5000.00
         },
         {
-          "config": "{\"name\":\"4d75458409239534dd07\",\"layouts\":[{\"id\":0,\"position\":{\"x\":13.316892725030826,\"y\":672.059186189889,\"z\":6000,\"width\":266.3378545006165,\"height\":34.62392108508015}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"Updated 19/05/2021 for Hybrid Meetup\"}]}]}}]}}}",
-          "filters": "[]",
-          "height": 34.62,
-          "width": 266.34,
-          "x": 13.32,
-          "y": 672.06,
-          "z": 6000.00
-        },
-        {
           "config": "{\"name\":\"5c042e98a07dbbae0670\",\"layouts\":[{\"id\":0,\"position\":{\"x\":539.4489947877885,\"y\":410.78183172002974,\"z\":4000,\"width\":740.5510052122114,\"height\":295.457930007446}}],\"singleVisual\":{\"visualType\":\"areaChart\",\"projections\":{\"Category\":[{\"queryRef\":\"Date.Fiscal Period\",\"active\":true}],\"Series\":[{\"queryRef\":\"Scenario.Scenario\"}],\"Y\":[{\"queryRef\":\"General Ledger.GL Amount\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"d\",\"Entity\":\"Date\",\"Type\":0},{\"Name\":\"s\",\"Entity\":\"Scenario\",\"Type\":0},{\"Name\":\"g\",\"Entity\":\"General Ledger\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"Fiscal Period\"},\"Name\":\"Date.Fiscal Period\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Scenario\"},\"Name\":\"Scenario.Scenario\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"g\"}},\"Property\":\"GL Amount\"},\"Name\":\"General Ledger.GL Amount\"}]},\"drillFilterOtherVisuals\":true,\"vcObjects\":{\"title\":[{\"properties\":{\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'Amount by Period'\"}}}}}]}}}",
           "filters": "[]",
           "height": 295.46,

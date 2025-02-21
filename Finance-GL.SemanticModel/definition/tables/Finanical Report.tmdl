@@ -165,7 +165,7 @@ table 'Finanical Report'
 		queryGroup: 'Finance GL'
 		source =
 				let
-				    Source=   Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.pbidedicated.windows.net", "FabricDW", [Query="SELECT [Report No], [Report Heading],ReportHeadingNo, [Report Section], [LineNo], LinkLineNo, LinkReport, LinkHeading, [Link Signage], Operator, Report, Calc1 FROM reports.FinancialReport"])
+				    Source=   Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT [Report No], [Report Heading],ReportHeadingNo, [Report Section], [LineNo], LinkLineNo, LinkReport, LinkHeading, [Link Signage], Operator, Report, Calc1 FROM reports.FinancialReport"])
 				in
 				    Source
 

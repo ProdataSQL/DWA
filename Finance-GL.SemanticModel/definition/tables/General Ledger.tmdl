@@ -251,7 +251,7 @@ table 'General Ledger'
 		queryGroup: 'Finance GL'
 		source =
 				let
-				    Source = Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.pbidedicated.windows.net", "FabricDW", [Query="SELECT DateKey, DepartmentGroupKey, ScenarioKey, OrganizationKey, BaseAmount, AccountKey, Date FROM reports.FactFinance f"])
+				    Source = Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT DateKey, DepartmentGroupKey, ScenarioKey, OrganizationKey, BaseAmount, AccountKey, Date FROM reports.FactFinance f"])
 				in
 				    Source
 

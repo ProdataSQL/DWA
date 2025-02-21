@@ -109,7 +109,7 @@ table Organization
 		queryGroup: 'Finance GL'
 		source =
 				let
-				    dbo_DimOrganization=  Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.pbidedicated.windows.net", "FabricDW", [Query="SELECT OrganizationKey, ParentOrganizationKey, PercentageOfOwnership, [Organization Name], CurrencyKey, Company, Region, Country, Division FROM reports.DimOrganization"])
+				    dbo_DimOrganization=  Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT OrganizationKey, ParentOrganizationKey, PercentageOfOwnership, [Organization Name], CurrencyKey, Company, Region, Country, Division FROM reports.DimOrganization"])
 				in
 				    dbo_DimOrganization
 

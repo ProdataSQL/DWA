@@ -69,7 +69,7 @@ table Date
 		queryGroup: 'Finance GL'
 		source =
 				let
-				    Source=    Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.pbidedicated.windows.net", "FabricDW", [Query="SELECT DateKey, Date, Month, [Fiscal Quarter], [Fiscal Year], [Fiscal Period No], [Fiscal Period] FROM reports.DimDate"])
+				    Source=    Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT DateKey, Date, Month, [Fiscal Quarter], [Fiscal Year], [Fiscal Period No], [Fiscal Period] FROM reports.DimDate"])
 				in
 				    Source
 

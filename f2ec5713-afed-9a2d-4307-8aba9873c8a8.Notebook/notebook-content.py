@@ -21,11 +21,9 @@ SourceSettings = '{"Directory": "landing/aw/", "File": "*.csv"}' # "condition" :
 TargetSettings = '{"SchemaName":"aw_stg", "mode":"overwrite"}'
 SourceConnectionSettings = None
 SinkConnectionSettings = None
-ActivitySettings = '{"with_checksum" : false, "dedupe": false, "ArchiveDirectory":"raw/aw"}' 
+# all of these are optional and set to their default
+ActivitySettings = '{"with_checksum" : false, "dedupe": false, "ArchiveDirectory":"raw/aw"}'
 LineageKey = '00000000-0000-0000-0000-000000000000'
-
-#Spark CSV Options
-#https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html
 
 # METADATA ********************
 
@@ -50,6 +48,16 @@ from pyspark.sql.functions import input_file_name, regexp_extract
 source_settings = json.loads(SourceSettings or '{}')
 target_settings = json.loads(TargetSettings or '{}')
 activity_settings = json.loads(ActivitySettings or '{}')
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
 lakehouse_name = spark.conf.get("trident.lakehouse.name")
 source_directory = source_settings.pop("Directory")
 source_file = source_settings.pop("File", None)
@@ -73,6 +81,16 @@ if do_archive and not archive_directory.startswith(FILES_PREFIX):
 
 if write_mode == "merge":
     merge_condition = target_settings.pop("condition")
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
 
 if not mssparkutils.fs.exists(source_directory):
     print("Directory does not exist.")
@@ -105,7 +123,7 @@ for table_files in table_files_mapping:
 
     table_name = table_name.strip('_ ')
 
-    print(f"Extracting {', '.join(table_files)} into {lakehouse_name}.{table_name}.")
+    print(f"Extracting {', '.join(table_files)} into {lakehouse_name}.dbo.{table_name}.")
     t = datetime.now()
 
     if write_mode == "overwrite":
@@ -155,7 +173,6 @@ for table_files in table_files_mapping:
         target_path =os.path.join(archive_directory, os.path.basename(f))
         print(f"\t- Archiving {source_path} to {target_path}.")
         mssparkutils.fs.mv(source_path, target_path, True, True)
-
 
 
 # METADATA ********************

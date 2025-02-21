@@ -17,7 +17,9 @@ BEGIN
 	IF OBJECT_ID('aw.ReportAccountMap') IS NOT NULL 
 		DROP TABLE aw.ReportAccountMap;
 
-	SELECT ar.ReportNo, ar.Report, a.AccountKey AS AccountKey
+	SELECT ar.ReportNo
+	, ar.Report COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 AS Report
+	, a.AccountKey COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 AS AccountKey
 	INTO aw.ReportAccountMap
 	FROM aw.DimAccount a
 	INNER JOIN aw_int.AccountRangeRules arr 

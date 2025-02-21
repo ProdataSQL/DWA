@@ -41,7 +41,7 @@ table ReportAccountMap
 		queryGroup: 'Finance GL'
 		source =
 				let
-				    Source=   Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.pbidedicated.windows.net", "FabricDW", [Query="SELECT ReportNo, Report, AccountKey FROM [reports].[ReportAccountMap]"])
+				    Source=   Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT ReportNo, Report, AccountKey FROM [reports].[ReportAccountMap]"])
 				in
 				    Source
 
