@@ -1,4 +1,4 @@
-# Prodata DWA - Data Warehouse Automation Framework (Fabric Edition)
+# DWA - Data Warehouse Automation Framework (Fabric Edition)
 ## Welcome
 Welcome to the [Prodata](https://www.prodata.ie) Fabric Data warheouse Automation Framework. DWA is a meta data automation framework for data warheousing and data engineering. 
 We ahve been developing and improving this framework for 15 years and now it is available for Open Source to try.  
