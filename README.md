@@ -1,6 +1,8 @@
-# Prodata DWA - Data Warehouse Automation Templates and Samples
+# Prodata DWA - Data Warehouse Automation Framework (Fabric Edition)
 ## Welcome
-Welcome to the [Prodata](https://www.prodata.ie) open source library for Fabric DWA. The code contained here is open source/free with no warranty or support implied. Feel free to ping me bob@prodata.ie if you found it useful.
+Welcome to the [Prodata](https://www.prodata.ie) Fabric Data warheouse Automation Framework. DWA is a meta data automation framework for data warheousing and data engineering. 
+We ahve been developing and improving this framework for 15 years and now it is available for Open Source to try.  
+ open source library for Fabric DWA. The code contained here is open source/free with no warranty or support implied. Feel free to ping me bob@prodata.ie if you found it useful.
 No this is not a product! but you can contact us to help build your own data warehouse or analytics solution using these syle of templates combined with our automation Framework
 
 ## Sample Notebook Templates
