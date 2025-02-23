@@ -28,20 +28,11 @@ https://prodata.ie/fabric-poc/
 ## Videos
 
 Introduction to DWA in Fabric
-[![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)](https://www.youtube.com/watch?v=9hkCDL8TKSQ&t=321s)
+[![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)](https://www.youtube.com/watch?v=9hkCDL8TKSQ)
+
+20 Minute Demo of autimated Ingest, Extract, Transform and Load
+[![image](https://github.com/user-attachments/assets/47026239-97f7-48a9-81b5-da2d4d070d9f)]
+(https://www.youtube.com/watch?v=Wc_JE8YsT90)
 
 
-### 1. Template Driven Data Engineering Library
-Common tasks are reduced to re-usaable tempalets which are extensible and can be added withotu any changes to the DWA framework with completely dynamic orchestration and execution.
-
-We create new Templates all the time and some are bespoke to customers ERP systems like SAP, Oracle ERP | PPM | Finnacials, etc
-
-Some Sample Templates are below
-* [Ingest-SFTP](https://github.com/ProdataSQL/DWA/blob/main/Library/Ingest/Ingest-SFTP.ipynb). Extract from SFTP into LH.
-* [Extract-CSV](https://github.com/ProdataSQL/DWA/blob/main/Library/Extract/Extract-CSV.ipynb). Extract from CSB into LH. Merge, clean headers, archive, dedupe, checksum, etc.
-* [Extract-SP-Excel](https://github.com/ProdataSQL/DWA/blob/main/Library/Extract/Extract-SP-Excel.ipynb). Extract from SharePoint directly to LH. Support for Wildcards and multiple worksheets.
-* [Extract-O365-API](https://github.com/ProdataSQL/DWA/blob/main/Library/Ops/Extract-O365-API.ipynb). Extract Office 365 logs to create historic log in LH
-* [Extract-Dictionary](https://github.com/ProdataSQL/DWA/blob/main/Library/Ops/Extract-Dictionary.ipynb). Extract Data Dictionary of all artefacts, tables and semantic model details.
-* [Extract-Fabric-Logs](https://github.com/ProdataSQL/DWA/blob/main/Library/Ops/Extract-Fabric-Logs.ipynb). Extract Refresh Logs. Coming Soon - Log Analytics DAX query logs.
-* [Extract-XML](https://github.com/ProdataSQL/DWA/blob/main/Library/Extract/Extract-XML.ipynb). Extract XML and optioinally use XLST to flaten into table.
   
