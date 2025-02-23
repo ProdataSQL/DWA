@@ -1,9 +1,12 @@
 # DWA - Data Warehouse Automation Framework<BR> (Fabric Edition)
 ## Welcome
 Welcome to the [Prodata](https://www.prodata.ie) Fabric Data warheouse Automation Framework. DWA is a meta data automation framework for data warheousing and data engineering. 
-We ahve been developing and improving this framework for 15 years and now it is available for Open Source to try.  
- open source library for Fabric DWA. The code contained here is open source/free with no warranty or support implied. Feel free to ping me bob@prodata.ie if you found it useful.
-No this is not a product! but you can contact us to help build your own data warehouse or analytics solution using these syle of templates combined with our automation Framework
+We have been developing and improving this framework for 15 years and now it is available for Open Source for you to try.
+
+![image](https://github.com/user-attachments/assets/678020fe-ead9-41f9-a77e-597350fa5e45)
+
+
+
 
 ## Sample Notebook Templates
 * [Ingest-SFTP](https://github.com/ProdataSQL/DWA/blob/main/Library/Ingest/Ingest-SFTP.ipynb). Extract from SFTP into LH.
