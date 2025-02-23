@@ -6,6 +6,18 @@ We have been developing and improving this framework for 15 years and now it is 
 ## Overview
 ![image](https://github.com/user-attachments/assets/678020fe-ead9-41f9-a77e-597350fa5e45)
 
+The DWA Framework supports the entire enterprise data warheouse lifecycle or other data engineering project by reducing data engineering pipelines and tasks ot meta data and enforcing common 
+Enterprise Features (logging, lineage, error handling), orchestration and a very flexible template library
+
+## Gettign Started and Documentation
+You can browse this Github repos to use some of the Templates for ideas on your project.<BR>
+If you wnat to install the framework and try it out, or look deeper into documentation, examples and demos then 
+read the wiki below
+<a href ="https://github.com/ProdataSQL/DWA">https://github.com/ProdataSQL/DWA</a>
+
+
+## Engaging with Prodata for a Quick Start
+
 
 ## Main Features
 ### 1. Template Driven Data Engineering Library
