@@ -9,19 +9,29 @@ We have been developing and improving this framework for 15 years and now it is 
 The DWA Framework supports the entire enterprise data warheouse lifecycle or other data engineering project by reducing data engineering pipelines and tasks ot meta data and enforcing common 
 Enterprise Features (logging, lineage, error handling), orchestration and a very flexible template library
 
-## Gettign Started and Documentation
+## Getting Started and Documentation
 You can browse this Github repos to use some of the Templates for ideas on your project.<BR>
-If you wnat to install the framework and try it out, or look deeper into documentation, examples and demos then 
+If you wwant to install the framework and try it out, or look deeper into documentation, examples and demos then 
 read the wiki below
 
 https://github.com/ProdataSQL/DWA/wiki
-
-
+<BR>
 
 ## Engaging with Prodata for a Quick Start
+if you want to try the Framework on your own Fabric environment, then Prodata offers a Fabric Data Warehouse Quick Start.
+This is 2-3 weeks ot install framework and create a sample Proof of Concept using your actual data and then provide walk through and training on the concepts 
+to accelerate your getting started with Fabric.
+<BR>
+More details on the link below
+https://prodata.ie/fabric-poc/
+
+## Videos
+
+Introduction to DWA in Fabric
+<a> href="">![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)>https://www.youtube.com/watch?v=9hkCDL8TKSQ&t=321s</a>
+https://www.youtube.com/watch?v=9hkCDL8TKSQ&t=321s
 
 
-## Main Features
 ### 1. Template Driven Data Engineering Library
 Common tasks are reduced to re-usaable tempalets which are extensible and can be added withotu any changes to the DWA framework with completely dynamic orchestration and execution.
 
