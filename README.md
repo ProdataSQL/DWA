@@ -28,8 +28,7 @@ https://prodata.ie/fabric-poc/
 ## Videos
 
 Introduction to DWA in Fabric
-![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)
-(https://www.youtube.com/watch?v=9hkCDL8TKSQ&t=321s)
+[![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)](https://www.youtube.com/watch?v=9hkCDL8TKSQ&t=321s)
 
 
 ### 1. Template Driven Data Engineering Library
