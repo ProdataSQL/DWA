@@ -13,7 +13,9 @@ Enterprise Features (logging, lineage, error handling), orchestration and a very
 You can browse this Github repos to use some of the Templates for ideas on your project.<BR>
 If you wnat to install the framework and try it out, or look deeper into documentation, examples and demos then 
 read the wiki below
-<a href ="https://github.com/ProdataSQL/DWA">https://github.com/ProdataSQL/DWA</a>
+
+https://github.com/ProdataSQL/DWA/wiki
+
 
 
 ## Engaging with Prodata for a Quick Start
