@@ -1,0 +1,32 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "InvokePipeline",
+        "typeProperties": {
+          "parameters": {
+            "PackageGroup": "AW",
+            "Stage": "ALL",
+            "PipelineID": "-1"
+          },
+          "waitOnCompletion": true,
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "pipelineId": "83cfef7e-40ed-9df8-4963-ee3340af6127",
+          "operationType": "InvokeFabricPipeline"
+        },
+        "externalReferences": {
+          "connection": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "TR_AdventureWorks",
+        "dependsOn": []
+      }
+    ]
+  }
+}
