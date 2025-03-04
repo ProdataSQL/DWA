@@ -1,0 +1,35 @@
+table Scenario
+	lineageTag: aa55d8a1-9a57-4815-8fe3-48acd590fb88
+
+	column ScenarioKey
+		dataType: string
+		isHidden
+		lineageTag: f23aa67a-f3b8-48a0-b7b0-2957a5a9e16f
+		summarizeBy: none
+		sourceColumn: ScenarioKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Scenario
+		dataType: string
+		lineageTag: 101bc198-8ddd-40df-aa80-7af260039f2c
+		summarizeBy: none
+		sourceColumn: Scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Scenario-180ddbc1-ecb6-47cf-a0a3-a068bda0bc9c = m
+		mode: import
+		queryGroup: 'Finance GL'
+		source =
+				let
+				    dbo_DimScenario = Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT ScenarioKey, Scenario FROM reports.DimScenario"])
+				in
+				    dbo_DimScenario
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

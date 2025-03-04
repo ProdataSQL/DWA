@@ -1,0 +1,53 @@
+table ReportAccountMap
+	isHidden
+	lineageTag: ee45c0d5-cc35-4daf-aea3-ea0a13419568
+
+	column ReportNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2a4b4412-4b9d-494e-a22f-8b63da0321aa
+		summarizeBy: none
+		sourceColumn: ReportNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column Report
+		dataType: string
+		isHidden
+		lineageTag: 17591d0a-3e58-40ab-b34d-aade1f2b14d2
+		summarizeBy: none
+		sourceColumn: Report
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountKey
+		dataType: string
+		isHidden
+		lineageTag: 4116a320-6a73-48a0-9f44-9d2ecb7784b7
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ReportAccountMap-7705b288-2899-4e91-b62d-418d02cf2e28 = m
+		mode: import
+		queryGroup: 'Finance GL'
+		source =
+				let
+				    Source=   Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT ReportNo, Report, AccountKey FROM [reports].[ReportAccountMap]"])
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

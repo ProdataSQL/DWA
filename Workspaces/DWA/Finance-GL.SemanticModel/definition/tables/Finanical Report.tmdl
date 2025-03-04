@@ -1,0 +1,177 @@
+table 'Finanical Report'
+	lineageTag: 72e0a53f-b8c6-4286-bab3-c9a312b79207
+
+	measure 'Report Scope' =
+			
+			IF (
+			    OR (
+			        HASONEVALUE ( 'Finanical Report'[Report Heading] ) = FALSE (),
+			        OR (
+			            ISINSCOPE ( 'Finanical Report'[Report Section] ) = FALSE (),
+			            CALCULATE (
+			                DISTINCTCOUNT ( 'Finanical Report'[Report No] ),
+			                ALLEXCEPT (
+			                    'Finanical Report',
+			                    'Finanical Report'[Report Heading],
+			                    'Finanical Report'[Report]
+			                )
+			            ) > 1
+			        )
+			    ),
+			    1
+			)
+		formatString: 0
+		lineageTag: 516b0d04-fb5b-4017-a4b7-2a03046365a0
+
+	measure 'LineNo Count' = COUNTROWS('Finanical Report')
+		formatString: 0
+		lineageTag: ad151df9-532a-42ae-ad72-b8d2e3fd665e
+
+	column Operator
+		dataType: string
+		lineageTag: a90dfdb3-1f0f-430a-a36c-84fbbbbaf0d4
+		summarizeBy: none
+		sourceColumn: Operator
+
+		annotation SummarizationSetBy = Automatic
+
+	column Calc1
+		dataType: string
+		isHidden
+		lineageTag: f87f61ef-ba40-47e6-a5ed-0f07e870c741
+		summarizeBy: none
+		sourceColumn: Calc1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Report
+		dataType: string
+		lineageTag: 6e0af1aa-ce2b-4ea6-8889-1dfecf6761af
+		summarizeBy: none
+		sourceColumn: Report
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Report No'
+		dataType: int64
+		formatString: 0
+		lineageTag: af47fce5-08d8-4790-9c20-349d2eb53af8
+		summarizeBy: none
+		sourceColumn: Report No
+
+		annotation SummarizationSetBy = User
+
+	column 'Report Heading'
+		dataType: string
+		lineageTag: b6d91717-0a0b-4401-871b-3a62595e84a0
+		summarizeBy: none
+		sourceColumn: Report Heading
+		sortByColumn: ReportHeadingNo
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Report Section'
+		dataType: string
+		lineageTag: f10485ae-825b-44e5-b859-c6c74e92edba
+		summarizeBy: none
+		sourceColumn: Report Section
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Link Signage'
+		dataType: int64
+		formatString: 0
+		lineageTag: f2896bc6-9b0c-4407-a810-dc698d531c41
+		summarizeBy: none
+		sourceColumn: Link Signage
+
+		annotation SummarizationSetBy = User
+
+	column LineNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7ecdcc6e-c114-4932-bdec-7388d8839ae1
+		summarizeBy: none
+		sourceColumn: LineNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column LinkLineNo
+		dataType: double
+		isHidden
+		formatString: 0
+		lineageTag: 2bae40ba-f58d-4fb1-b3e0-fefada4241cf
+		summarizeBy: none
+		sourceColumn: LinkLineNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column LinkReport
+		dataType: string
+		isHidden
+		lineageTag: d9a26d6d-a486-4f66-83bf-efc8877be428
+		summarizeBy: none
+		sourceColumn: LinkReport
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column LinkHeading
+		dataType: string
+		isHidden
+		lineageTag: 215ad772-bfae-4104-8b9e-be4700cb2517
+		summarizeBy: none
+		sourceColumn: LinkHeading
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportHeadingNo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c33b22ed-a479-400d-b22a-d6294e74c389
+		summarizeBy: none
+		sourceColumn: ReportHeadingNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	hierarchy 'Report Hierarchy'
+		lineageTag: 90218621-f25f-412a-a719-3b4134ec804d
+
+		level 'Report Heading'
+			lineageTag: 691e3107-fa73-4337-b77c-3205594e04c0
+			column: 'Report Heading'
+
+		level 'Report Section'
+			lineageTag: edd9bab5-72f1-4793-8b9c-cd87a8701638
+			column: 'Report Section'
+
+	partition 'Finanical Report-63ad57e2-cdef-404b-868c-19112537ee5b' = m
+		mode: import
+		queryGroup: 'Finance GL'
+		source =
+				let
+				    Source=   Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT [Report No], [Report Heading],ReportHeadingNo, [Report Section], [LineNo], LinkLineNo, LinkReport, LinkHeading, [Link Signage], Operator, Report, Calc1 FROM reports.FinancialReport"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation LinkedQueryName = Finanical Report
+
+	annotation PBI_NavigationStepName = Navigation
+
