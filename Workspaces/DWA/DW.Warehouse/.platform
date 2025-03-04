@@ -1,0 +1,12 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Warehouse",
+    "displayName": "DW",
+    "description": "DWA Enterprise Datawarehouse"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e2ce0200-2243-81be-4799-b337c7786002"
+  }
+}

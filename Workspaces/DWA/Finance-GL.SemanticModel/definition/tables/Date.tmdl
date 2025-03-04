@@ -1,0 +1,79 @@
+table Date
+	lineageTag: 08015f70-7d70-4eda-80f2-1a924d8de049
+
+	column DateKey
+		dataType: string
+		isHidden
+		lineageTag: 452d8412-eb71-4501-b1ec-22a6d8f7b4fc
+		summarizeBy: none
+		sourceColumn: DateKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0a13bfa2-1189-4d81-8608-65ae9b78f216
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 28ef5be9-3dfc-4503-8cb9-539a296a336f
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Quarter'
+		dataType: int64
+		formatString: 0
+		lineageTag: db86bae6-7d8c-42a3-b206-61401570b019
+		summarizeBy: none
+		sourceColumn: Fiscal Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9dda6ff0-3ae1-4a2d-872e-39fe7f726cb8
+		summarizeBy: none
+		sourceColumn: Fiscal Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Period No'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8895cdea-fcab-46de-aba1-5f70a2ab4f87
+		summarizeBy: none
+		sourceColumn: Fiscal Period No
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fiscal Period'
+		dataType: string
+		lineageTag: 6f0912d9-5ce9-42f7-8db8-c183743322a2
+		summarizeBy: none
+		sourceColumn: Fiscal Period
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Date-09ab7aeb-ed6f-4f1a-ae77-5e5a9261c99b = m
+		mode: import
+		queryGroup: 'Finance GL'
+		source =
+				let
+				    Source=    Sql.Database("fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com", "DW", [Query="SELECT DateKey, Date, Month, [Fiscal Quarter], [Fiscal Year], [Fiscal Period No], [Fiscal Period] FROM reports.DimDate"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,114 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "BinarySource",
+            "formatSettings": {
+              "type": "BinaryReadSettings"
+            },
+            "storeSettings": {
+              "type": "SftpReadSettings",
+              "disableChunking": false,
+              "recursive": {
+                "value": "@if(contains(json(string(pipeline().parameters.SourceSettings)),'Recurisve'), bool(json(string(pipeline().parameters.SourceSettings)).Recurisve), false)",
+                "type": "Expression"
+              },
+              "wildcardFolderPath": {
+                "value": "@json(string(pipeline().parameters.SourceSettings)).Directory",
+                "type": "Expression"
+              },
+              "wildcardFileName": {
+                "value": "@json(string(pipeline().parameters.SourceSettings)).File",
+                "type": "Expression"
+              }
+            },
+            "datasetSettings": {
+              "type": "Binary",
+              "typeProperties": {
+                "location": {
+                  "type": "SftpLocation"
+                }
+              },
+              "externalReferences": {
+                "connection": "1a8439c4-a50b-4ef5-82d2-d150be2f91f7"
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "BinarySink",
+            "storeSettings": {
+              "type": "LakehouseWriteSettings",
+              "copyBehavior": "PreserveHierarchy"
+            },
+            "datasetSettings": {
+              "type": "Binary",
+              "typeProperties": {
+                "location": {
+                  "type": "LakehouseLocation",
+                  "folderPath": {
+                    "value": "@json(string(pipeline().parameters.TargetSettings)).Directory",
+                    "type": "Expression"
+                  }
+                }
+              },
+              "linkedService": {
+                "name": "LH",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
+                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "rootFolder": "Files"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Copy-SFTP-Prodata",
+        "dependsOn": []
+      }
+    ],
+    "parameters": {
+      "SourceSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Directory": "/aw/",
+          "File": "*.*"
+        }
+      },
+      "TargetSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Directory": "landing/AdventureWorks/erp"
+        }
+      },
+      "SourceConnectionSettings": {
+        "type": "string"
+      },
+      "TargetConnectionSettings": {
+        "type": "string"
+      },
+      "ActivitySettings": {
+        "type": "string"
+      },
+      "LineageKey": {
+        "type": "string"
+      }
+    }
+  }
+}

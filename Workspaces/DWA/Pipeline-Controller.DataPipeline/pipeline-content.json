@@ -1,0 +1,221 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "ForEach",
+        "typeProperties": {
+          "isSequential": true,
+          "items": {
+            "value": "@activity('usp_PipelineSequence').output.resultsets[0].rows",
+            "type": "Expression"
+          },
+          "activities": [
+            {
+              "type": "IfCondition",
+              "typeProperties": {
+                "expression": {
+                  "value": "@variables('Continue')",
+                  "type": "Expression"
+                },
+                "ifTrueActivities": [
+                  {
+                    "type": "InvokePipeline",
+                    "typeProperties": {
+                      "parameters": {
+                        "PackageGroup": {
+                          "value": "@pipeline().parameters.PackageGroup",
+                          "type": "Expression"
+                        },
+                        "PipelineID": {
+                          "value": "@pipeline().parameters.PipelineID",
+                          "type": "Expression"
+                        },
+                        "PipelineSequence": {
+                          "value": "@item().PipelineSequence",
+                          "type": "Expression"
+                        }
+                      },
+                      "waitOnCompletion": true,
+                      "workspaceId": "00000000-0000-0000-0000-000000000000",
+                      "pipelineId": "d5d59ff4-3ce5-a292-47e9-cbf6f19bef17",
+                      "operationType": "InvokeFabricPipeline"
+                    },
+                    "externalReferences": {
+                      "connection": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+                    },
+                    "policy": {
+                      "timeout": "0.12:00:00",
+                      "retry": 0,
+                      "retryIntervalInSeconds": 30,
+                      "secureInput": false,
+                      "secureOutput": false
+                    },
+                    "name": "Pipeline-Worker",
+                    "dependsOn": []
+                  }
+                ],
+                "ifFalseActivities": []
+              },
+              "name": "If Continue",
+              "dependsOn": []
+            },
+            {
+              "type": "SetVariable",
+              "typeProperties": {
+                "variableName": "Continue",
+                "value": {
+                  "value": "@item().ContinueOnError",
+                  "type": "Expression"
+                }
+              },
+              "policy": {
+                "secureInput": false,
+                "secureOutput": false
+              },
+              "name": "Set Continue",
+              "dependsOn": [
+                {
+                  "activity": "If Continue",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Fail",
+              "typeProperties": {
+                "message": {
+                  "value": "@activity('Pipeline-Worker').output.pipelineReturnValue",
+                  "type": "Expression"
+                },
+                "errorCode": {
+                  "value": "001",
+                  "type": "Expression"
+                }
+              },
+              "name": "Fail1",
+              "dependsOn": [
+                {
+                  "activity": "Set Continue",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "name": "ForEach Sequence",
+        "dependsOn": [
+          {
+            "activity": "usp_PipelineSequence",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Script",
+        "typeProperties": {
+          "scripts": [
+            {
+              "text": {
+                "value": "config.usp_PipelineSequence @PackageGroup,@Stage",
+                "type": "Expression"
+              },
+              "type": "Query",
+              "parameters": [
+                {
+                  "name": "PackageGroup",
+                  "type": "String",
+                  "value": {
+                    "value": "@pipeline().parameters.PackageGroup",
+                    "type": "Expression"
+                  },
+                  "direction": "Input"
+                },
+                {
+                  "name": "Stage",
+                  "type": "String",
+                  "value": {
+                    "value": "@pipeline().parameters.Stage",
+                    "type": "Expression"
+                  },
+                  "direction": "Input"
+                }
+              ]
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        },
+        "linkedService": {
+          "name": "e206b28b_58d7_497e_a650_b88647a83d6e",
+          "properties": {
+            "type": "DataWarehouse",
+            "typeProperties": {
+              "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
+              "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
+              "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.1:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "usp_PipelineSequence",
+        "dependsOn": [
+          {
+            "activity": "Get Env Variables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ExecutePipeline",
+        "typeProperties": {
+          "pipeline": {
+            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
+            "type": "PipelineReference"
+          },
+          "parameters": {},
+          "waitOnCompletion": true
+        },
+        "policy": {
+          "secureInput": false
+        },
+        "name": "Get Env Variables",
+        "dependsOn": []
+      }
+    ],
+    "parameters": {
+      "PackageGroup": {
+        "type": "string",
+        "defaultValue": "AW"
+      },
+      "Stage": {
+        "type": "string",
+        "defaultValue": "ALL"
+      },
+      "PipelineID": {
+        "type": "string",
+        "defaultValue": "-1"
+      }
+    },
+    "variables": {
+      "Continue": {
+        "type": "Boolean",
+        "defaultValue": true
+      }
+    },
+    "concurrency": 8
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Finance-GL"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a6140a2b-035d-92ef-42ff-8a475eb8480c"
+  }
+}
