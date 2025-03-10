@@ -1,12 +1,9 @@
 ﻿/****** Object:  Schema [audit]    Script Date: 07/03/2025 15:58:59 ******/
 CREATE SCHEMA [audit];
- 
 /****** Object:  Schema [config]    Script Date: 07/03/2025 15:58:59 ******/
 CREATE SCHEMA [config];
- 
 /****** Object:  Schema [devops]    Script Date: 07/03/2025 15:58:59 ******/
 CREATE SCHEMA [devops];
- 
 /****** Object:  Table [dbo].[dict_artefacts]    Script Date: 07/03/2025 15:58:59 ******/
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
