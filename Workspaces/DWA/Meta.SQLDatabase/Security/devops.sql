@@ -1,5 +1,5 @@
 CREATE SCHEMA [devops]
-    AUTHORIZATION [aidan@prodata.ie];
+    AUTHORIZATION [dbo];
 
 
 GO

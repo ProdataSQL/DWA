@@ -7,7 +7,7 @@ Example:    DECLARE @IsSchemaDrift BIT
 			DECLARE @IsSchemaDrift BIT
 			EXEC dwa.[usp_TableLoad_CheckSchemaDrift] 7, @IsSchemaDrift OUTPUT
 			PRINT @IsSchemaDrift
-History:	20/02/2025 Created		
+History:	25/08/2022 Deepak, Created		
 */
 CREATE   PROC [dwa].[usp_TableLoad_CheckSchemaDrift] @TableID [int] , @IsSchemaDrift bit OUT AS
 BEGIN
@@ -47,7 +47,7 @@ BEGIN
 			SELECT  c.name , st.name as tname ,c.max_length ,c.precision,c.scale,c.is_nullable
 			FROM sys.columns c			 
 			INNER JOIN sys.types st ON c.user_type_id = st.user_type_id
-			WHERE c.object_id = object_id(@SourceObject)  AND c.name <> 'RowVersionNo'
+			WHERE c.object_id = object_id(@SourceObject)  AND c.name NOT IN ('RowVersionNo','RowChecksum')
 			AND c.name NOT IN (SELECT ltrim(value) FROM string_split(@BusinessKeys,','))
 		)sc
 		END
@@ -56,13 +56,13 @@ BEGIN
 			SELECT @CheckSumSource = checksum(string_agg(checksum(sc.name , st.name ,sc.max_length ,sc.precision,sc.scale,sc.is_nullable),',')  WITHIN GROUP (Order by sc.name))
 			FROM sys.columns sc			 
 			INNER JOIN sys.types st ON sc.user_type_id = st.user_type_id
-			WHERE sc.object_id = object_id(@SourceObject) AND sc.name <> 'RowVersionNo';
+			WHERE sc.object_id = object_id(@SourceObject) AND sc.name NOT IN ('RowVersionNo','RowChecksum');
 		END
 
 	SELECT @CheckSumTarget = checksum(string_agg(checksum(sc.name , st.name ,sc.max_length ,sc.precision,sc.scale,sc.is_nullable),',') WITHIN GROUP (Order by sc.name))
 	FROM sys.columns sc			 
 	INNER JOIN sys.types st ON sc.user_type_id = st.user_type_id
-	WHERE sc.object_id = object_id(@TargetObject)  AND sc.name <> 'RowVersionNo';
+	WHERE sc.object_id = object_id(@TargetObject)  AND sc.name NOT IN ('RowVersionNo','RowChecksum');
 
 	IF @CheckSumSource <> @CheckSumTarget
 			SET @IsSchemaDrift = 1
