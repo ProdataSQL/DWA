@@ -14,17 +14,17 @@
               "type": "Copy",
               "typeProperties": {
                 "source": {
-                  "type": "ParquetSource",
+                  "type": "DelimitedTextSource",
+                  "formatSettings": {
+                    "type": "DelimitedTextReadSettings"
+                  },
                   "storeSettings": {
                     "type": "LakehouseReadSettings",
                     "recursive": true,
                     "enablePartitionDiscovery": false
                   },
-                  "formatSettings": {
-                    "type": "ParquetReadSettings"
-                  },
                   "datasetSettings": {
-                    "type": "Parquet",
+                    "type": "DelimitedText",
                     "typeProperties": {
                       "location": {
                         "type": "LakehouseLocation",
@@ -37,16 +37,19 @@
                           "type": "Expression"
                         }
                       },
-                      "compressionCodec": "snappy"
+                      "columnDelimiter": ",",
+                      "quoteChar": "\"",
+                      "escapeChar": "\\",
+                      "firstRowAsHeader": true
                     },
                     "schema": [],
                     "linkedService": {
-                      "name": "FabricLH",
+                      "name": "LH",
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
-                          "workspaceId": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+                          "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
                           "rootFolder": "Files"
                         },
                         "annotations": []
