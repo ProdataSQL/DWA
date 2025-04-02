@@ -12,3 +12,6 @@
 [config].[Pipelines]
 [config].[PipelineTables]
 [config].[DatasetLineage]
+[audit].[PipelineLog]
+[audit].[LoadLog]
+[audit].[ReleaseLog]
