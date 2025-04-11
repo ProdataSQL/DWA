@@ -11,4 +11,3 @@ CREATE TABLE [aw].[FactFinance] (
 	[LineageKey] varchar(36) NOT NULL, 
 	[RowChecksum] bigint NOT NULL
 );
-

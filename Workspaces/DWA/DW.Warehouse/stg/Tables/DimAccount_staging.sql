@@ -1,4 +1,4 @@
-CREATE TABLE [aw].[DimAccount] (
+CREATE TABLE [stg].[DimAccount_staging] (
 
 	[AccountKey] varchar(16) NULL, 
 	[ParentAccountKey] varchar(16) NULL, 
