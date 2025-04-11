@@ -18,4 +18,3 @@ CREATE TABLE [aw].[DimDate] (
 	[FileName] varchar(512) NULL, 
 	[LineageKey] varchar(36) NOT NULL
 );
-

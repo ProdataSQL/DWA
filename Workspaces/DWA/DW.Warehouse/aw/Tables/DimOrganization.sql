@@ -9,4 +9,3 @@ CREATE TABLE [aw].[DimOrganization] (
 	[FileName] varchar(512) NULL, 
 	[LineageKey] varchar(36) NOT NULL
 );
-
