@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Extract-SP-Excel",
+    "displayName": "Export-Parquet",
     "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "30c6d0f8-9f34-ad79-4657-26c96d2dc26a"
+    "logicalId": "5b301002-deed-89a7-457b-323d7291e4d8"
   }
 }

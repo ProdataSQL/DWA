@@ -8,12 +8,25 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "19785e4d-5572-4ced-bfab-f26e7c5de3ce",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "19785e4d-5572-4ced-bfab-f26e7c5de3ce"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
+
+# MARKDOWN ********************
+
+# #### Extract-XML
+# 
+# This notebook transforms XML files using a provided XSLT stylesheet and loads the resulting data into a staging schema in Lakehouse.
+# 
+# The XSLT logic is embedded via the ActivitySettings parameter, allowing for flexible parsing and formatting of XML structures. It also supports structured ingestion of XML content stored in Lakehouse file paths.
 
 # PARAMETERS CELL ********************
 
@@ -37,7 +50,8 @@ ActivitySettings='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1
     <xsl:text>"&#10;</xsl:text>
   </xsl:template>
 </xsl:stylesheet>
-'''
+''' #Stores the XSLT stylesheet for the source file
+# all of these are optional and set to their default
 SourceConnectionSettings = None
 TargetConnectionSettings = None
 LineageKey = 1

@@ -15,6 +15,14 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# #### Extract-Dictionary
+# 
+# This notebook collects and stores metadata information from Data Warehouse into Lakehouse for data governance, backup and data cataloguing purpose. Metadata information could be notebook information, datasets, data warehouse tables.
+# 
+# It needs a library helper function to establish connection with data warehouse.
+
 # PARAMETERS CELL ********************
 
 # No Parameters as settings obtained dynamically from default spark lakehouse
@@ -34,6 +42,7 @@ import pandas as pd
 from builtin.sql_connection_helper import create_engine
 import sempy.fabric as fabric
 import re
+
 tenant_id=spark.conf.get("trident.tenant.id")
 workspace_id=spark.conf.get("trident.workspace.id")
 lakehouse_id=spark.conf.get("trident.lakehouse.id")
@@ -41,68 +50,73 @@ lakehouse_name=spark.conf.get("trident.lakehouse.name")
 sql_end_point=connection_string= fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}").json()['properties']['sqlEndpointProperties']['connectionString']
 connection_string = "Driver={{ODBC Driver 18 for SQL Server}};Server={}".format(sql_end_point)
 pattern = '[ ,;{}()\n\t/=]'
+
 # List Datasets from meta data
 engine = create_engine(connection_string)
-with engine.connect() as alchemy_connection:  
+with engine.connect() as alchemy_connection:
+    df_datasets = pd.read_sql_query (f"exec Meta.config.usp_OpsDatasets", alchemy_connection)
+    spark_df=spark.createDataFrame(df_datasets)
+    
     sql =f"select  lower(SCHEMA_NAME(schema_id) + '.' + name) as edw_object_name ,  name as edw_table_name, SCHEMA_NAME(schema_id) as schema_name, create_date, modify_date  from {edw}.sys.tables"
     df= pd.read_sql_query (sql, alchemy_connection)
-    spark_df=spark.createDataFrame(df).write.mode("overwrite").saveAsTable("dict_edw_tables")
+    spark_df=spark.createDataFrame(df_datasets).write.mode("overwrite").saveAsTable("dict_edw_tables")
+
     sql =f"select  lower(SCHEMA_NAME(schema_id) + '.' + name) as edw_object_name ,  name as edw_table_name, SCHEMA_NAME(schema_id) as schema_name, create_date, modify_date  from {lh}.sys.tables"
     df= pd.read_sql_query (sql, alchemy_connection)
-    spark_df=spark.createDataFrame(df).write.mode("overwrite").saveAsTable("dict_lh_tables")
+    spark_df=spark.createDataFrame(df_datasets).write.mode("overwrite").saveAsTable("dict_lh_tables")
+
 #Store Fabric Artefacts
 df=fabric.list_items()
 df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
 spark.createDataFrame(df).write.mode("overwrite").saveAsTable("dict_artefacts")
+
 #List Fabric Workspaces
 df_workspaces =fabric.list_workspaces()
 df_workspaces=df_workspaces[df_workspaces['Capacity Id'].notna()] 
-#List DataSets and Model Tables 
-df_datasets =fabric.list_datasets()
+
+# Store Model Tables
 tables=[]
 for row in df_datasets.itertuples(index=True, name='datasets'):
-    dataset = row[1]
-    df =fabric.list_tables(workspace=workspace_id, dataset=dataset)
-    df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
-    df.rename(columns={'name': 'table_name'}, inplace=True)
-    df.insert(0, 'dataset', dataset)
-    tables.append(df)
+    dataset = row.Dataset
+    workspace=row.workspace
+    if  not df_workspaces[df_workspaces['Name'] ==workspace].empty:
+        df =fabric.list_tables(workspace=workspace, dataset=dataset)
+        df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
+        df.rename(columns={'name': 'table_name'}, inplace=True)
+        df.insert(0, 'dataset', dataset)
+        tables.append(df)
 df=pd.concat(tables, ignore_index=True)
 df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
-if not df.empty:
-    spark.createDataFrame(df).write.mode("overwrite").saveAsTable(f"dict_dataset_tables")
-else:
-    print("DataFrame is empty. Skipping write to Spark (dict_dataset_tables).") 
+spark.createDataFrame(df).write.mode("overwrite").saveAsTable(f"dict_dataset_tables") 
+
 #Store Columns for Data Dictionary
 columns=[]
 for row in df_datasets.itertuples(index=True, name='datasets'):
-    dataset = row[1]
-    df =fabric.list_tables(workspace=workspace_id, dataset=dataset,include_columns=True)
-    df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
-    df.rename(columns={'name': 'table_name'}, inplace=True)
-    df.insert(0, 'dataset', dataset)
-    columns.append(df)
+    dataset = row.Dataset
+    workspace=row.workspace
+    if  not df_workspaces[df_workspaces['Name'] ==workspace].empty:
+        df =fabric.list_tables(workspace=workspace, dataset=dataset,include_columns=True)
+        df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
+        df.rename(columns={'name': 'table_name'}, inplace=True)
+        df.insert(0, 'dataset', dataset)
+        columns.append(df)
 df=pd.concat(columns, ignore_index=True)
-if not df.empty:
-    df = spark.createDataFrame(df)
-    df.write.mode("overwrite").saveAsTable(f"dict_dataset_columns") 
-else:
-    print("DataFrame is empty. Skipping write to Spark (dict_dataset_columns).")
+df = spark.createDataFrame(df)
+df.write.mode("overwrite").saveAsTable(f"dict_dataset_columns") 
+
 measures=[]
 for row in df_datasets.itertuples(index=True, name='datasets'):
-    dataset = row[1]
-    df =fabric.list_measures (workspace=workspace_id, dataset=dataset)
-    df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
-    df.rename(columns={'name': 'table_name'}, inplace=True)
-    df.insert(0, 'dataset', dataset)
-    measures.append(df)
+    dataset = row.Dataset
+    workspace=row.workspace
+    if  not df_workspaces[df_workspaces['Name'] ==workspace].empty:
+        df =fabric.list_measures (workspace=workspace, dataset=dataset)
+        df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(pattern).lower()) for col in df.columns])))
+        df.rename(columns={'name': 'table_name'}, inplace=True)
+        df.insert(0, 'dataset', dataset)
+        measures.append(df)
 df=pd.concat(measures, ignore_index=True)
-if not df.empty:
-    df = spark.createDataFrame(df)
-    df.write.mode("overwrite").saveAsTable(f"dict_dataset_measures") 
-else:
-    print("DataFrame is empty. Skipping write to Spark (dict_dataset_measures).")
-
+df = spark.createDataFrame(df)
+df.write.mode("overwrite").saveAsTable(f"dict_dataset_measures") 
 
 
 # METADATA ********************

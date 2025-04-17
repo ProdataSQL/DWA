@@ -8,12 +8,19 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
 # META     }
 # META   }
 # META }
+
+# MARKDOWN ********************
+
+# #### Extract-O365-API
+# 
+# This notebook ingests Office 365 usage data (e.g., OneDrive, Mailbox reports) directly from the Microsoft Graph API into a staging schema in Lakehouse. 
+# It relies on secure credential access via Azure Key Vault and supports incremental loads, deduplication, and merge operations.
 
 # PARAMETERS CELL ********************
 
@@ -128,17 +135,15 @@ for url in urls:
     if any(part in url for part in ["(period", "(date"]):
         report_url = url    
     else:
-        if write_mode != "overwrite":
-            result = spark.sql(f"SELECT MAX(Report_Refresh_Date) AS MaxReportDate FROM {full_table_name}").collect()
-            max_date = result[0]["MaxReportDate"]
-            if max_date and "getMailboxUsageDetail" not in url:
-                max_date_t = datetime.strptime(max_date, "%Y-%m-%d")
-                today = datetime.today()
-                report_url = f"{url}(date={max_date})"
-            else:
-                report_url = f"{url}(period='D90')"
+        
+        result = spark.sql(f"SELECT MAX(Report_Refresh_Date) AS MaxReportDate FROM {full_table_name}").collect()
+        max_date = result[0]["MaxReportDate"]
+        if max_date and "getMailboxUsageDetail" not in url:
+            max_date_t = datetime.strptime(max_date, "%Y-%m-%d")
+            today = datetime.today()
+            report_url = f"{url}(date={max_date})"
         else:
-                report_url = f"{url}(period='D90')"
+            report_url = f"{url}(period='D90')"
     print(report_url)
     response = requests.get(report_url, headers=headers)
     response.raise_for_status()

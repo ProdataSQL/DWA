@@ -9,6 +9,12 @@
 # META   "dependencies": {}
 # META }
 
+# MARKDOWN ********************
+
+# #### SharePoint-Shared-Functions
+# 
+# This notebook provides functions to interact with SharePoint using Microsoft Graph API. It supports authentication via Azure Active Directory, retrieves SharePoint site, drive, and list details, and allows for operations like fetching files, columns, and rows, including handling wildcards for file searches. It includes error handling for missing resources, making it suitable for automating data retrieval from SharePoint and integrating with other data processing workflows.
+
 # CELL ********************
 
 import uuid

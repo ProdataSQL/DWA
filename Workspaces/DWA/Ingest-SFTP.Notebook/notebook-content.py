@@ -15,6 +15,13 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# #### Ingest-SFTP
+# 
+# This notebook connects to a remote server using SSH and SFTP, downloads files from a specified directory (with optional wildcard matching), and saves them to a target location in a Fabric Lakehouse environment. It supports optional file deletion from the source after successful transfer. It handles dynamic file naming and directory creation, ensuring compatibility with Lakehouse storage.
+
+
 # PARAMETERS CELL ********************
 
 SourceConnectionSettings='{"Host":"prodatasftp.blob.core.windows.net", "Username":"prodatasftp.prodata", "Port":22, "keyvault":"https://kv-fabric-dev.vault.azure.net/", "SecretName":"prodata-sftp-password"}'

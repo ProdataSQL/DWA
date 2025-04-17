@@ -20,11 +20,18 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# #### Extract-CSV-Pandas
+# 
+# This notebook copies a single CSV file using Pandas from a Data lake into a table in the staging schema in Lakehouse. It supports configurable CSV read options (like delimiter and encoding) and writes the data in either append or overwrite mode.
+
 # PARAMETERS CELL ********************
 
 #See https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html for CSV options
 SourceSettings = '{"Directory" : "unittest/csv/", "File" : "Date_NoHeader.csv", "header":0,"delimiter":",","encoding":"UTF-8"}'
 TargetSettings = '{"TableName":"ZipExample", "SchemaName":"dbo", "mode":"overwrite"}'
+# all of these are optional and set to their default
 SourceConnectionSettings=None
 TargetConnectionSettings=None
 ActivitySettings=None

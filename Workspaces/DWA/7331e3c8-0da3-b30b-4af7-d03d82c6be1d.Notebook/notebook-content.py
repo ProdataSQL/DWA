@@ -8,21 +8,33 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# #### Extract-CSV 
+# 
+# This notebook automates the loading of CSV files from a Data Lake into staging or bronze tables within a Fabric Lakehouse. It supports archiving, customizable schemas, deduplication, checksums, file archiving, and merge operations. It dynamically processes both single and multiple files, structures the data into organized tables, and maintains full lineage tracking.
+
 # PARAMETERS CELL ********************
 
-SourceSettings = '{"Directory": "landing/aw/", "File": "*.csv"}' # "condition" : "target.RowChecksum = source.RowChecksum","mode":"merge"
-TargetSettings = '{"SchemaName":"aw_stg", "mode":"overwrite"}'
+SourceSettings = '{"Directory": "unittest/AdventureWorks/erp", "File": "*.csv"}' # "condition" : "target.RowChecksum = source.RowChecksum","mode":"merge"
+# Source Setting Options https://spark.apache.org/docs/3.5.4/sql-data-sources-csv.html
+TargetSettings = '{"SchemaName":"tst", "mode":"overwrite" }'
 SourceConnectionSettings = None
 SinkConnectionSettings = None
 # all of these are optional and set to their default
-ActivitySettings = '{"with_checksum" : false, "dedupe": false, "ArchiveDirectory":"raw/aw"}'
+ActivitySettings = '{"with_checksum" : false, "dedupe": false}'
 LineageKey = '00000000-0000-0000-0000-000000000000'
 
 # METADATA ********************
@@ -63,13 +75,13 @@ source_directory = source_settings.pop("Directory")
 source_file = source_settings.pop("File", None)
 target_table_name = target_settings.pop("TableName", None)
 target_schema_name = target_settings.pop("SchemaName", "stg").strip("_. ")
+drop = target_settings.pop("drop", True)
 write_mode = target_settings.pop("mode", "overwrite")
 archive_directory = activity_settings.get("ArchiveDirectory")
 do_archive = bool(archive_directory)
 dedupe = bool(activity_settings.get("dedupe"))
 with_checksum = bool(activity_settings.get("with_checksum"))
 column_names = source_settings.pop("names", None)
-
 source_settings.setdefault("header", True)
 
 FILES_PREFIX = "Files"
@@ -126,15 +138,13 @@ for table_files in table_files_mapping:
     print(f"Extracting {', '.join(table_files)} into {lakehouse_name}.dbo.{table_name}.")
     t = datetime.now()
 
-    if write_mode == "overwrite":
+    if write_mode == "overwrite" and drop:
         spark.sql(f"DROP TABLE IF EXISTS {table_name}")
 
     df = spark.read.options(**source_settings).format("csv").load(table_files)
 
     pattern = r'[ ,\;{}()\n\t=]'
-
     clean_headers = [re.sub(pattern, '_', col) for col in column_names or df.columns]
-
     df = df.toDF(*clean_headers)
 
     if with_checksum:

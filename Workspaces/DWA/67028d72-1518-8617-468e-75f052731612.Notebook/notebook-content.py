@@ -8,12 +8,21 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": []
 # META     }
 # META   }
 # META }
+
+# MARKDOWN ********************
+
+# #### Extract-SP-Excel
+# 
+# This notebook copies the excel data from a SharePoint site directly into a staging schema in Lakehouse.
+# 
+# "Sharepoint-Shared-Function" is also required to handle authentication and SharePoint API access, as there are other SharePoint related notebooks in our wider system.
 
 # PARAMETERS CELL ********************
 
@@ -21,7 +30,7 @@ SourceConnectionSettings='{ "sharepoint_url":"prodata365.sharepoint.com","site":
 TargetConnectionSettings=None
 # See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_excel.html for excel options
 SourceSettings='{"Drive": "AdventureWorks", "Directory" : "AW/erp", "File" : "*.xlsx" }'
-TargetSettings = '{"SchemaName":"aw"}' 
+TargetSettings = '{"SchemaName":"aw_stg"}' 
 ActivitySettings=None
 LineageKey = "00000000-0000-0000-0000-000000000000"
 
