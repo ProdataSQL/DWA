@@ -20,11 +20,24 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# #### Archivefiles
+# 
+# This notebook connects to a SQL Server database, retrieves file details via a stored procedure, and moves files from a source directory to an archive directory within a lakehouse structure. It handles file operations, error checking, and updates the database to mark the files as archived. 
+
 # PARAMETERS CELL ********************
 
 Server = 'fkm4vwf6l6zebg4lqrhbtdcmsq-absyvg6llsuutcc3wwyid37nou.datawarehouse.pbidedicated.windows.net'
 Database = 'FabricDW'
 PackageGroup='AW'
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
 # CELL ********************
 
@@ -93,3 +106,10 @@ for record in records:
 
 # Close the database connection
 connection.close()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }

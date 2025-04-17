@@ -15,6 +15,13 @@
 # META   }
 # META }
 
+# MARKDOWN ********************
+
+# #### Extract-Fabric-Logs 
+# 
+# This notebook collects and stores refresh log data from datasets into delta lake table that can be used for monitoring and auditing purpose. 
+# It retrieves latest refresh request logs for each dataset in a workspace.
+
 # PARAMETERS CELL ********************
 
 # No Parameters as settings obtained dynamically from default spark lakehouse
