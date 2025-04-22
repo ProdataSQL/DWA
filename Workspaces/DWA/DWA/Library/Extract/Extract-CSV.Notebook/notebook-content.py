@@ -107,7 +107,7 @@ if write_mode == "merge":
 if not mssparkutils.fs.exists(source_directory):
     print("Directory does not exist.")
     mssparkutils.notebook.exit(0)
-
+\ProdataSQL\DWA\blob\main\Scripts\Setup-DWA.ipynb
 file_list = mssparkutils.fs.ls(source_directory)
 if not file_list:
     print("No files found in the source directory.")
