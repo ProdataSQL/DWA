@@ -51,15 +51,16 @@ lakehouse_name=spark.conf.get("trident.lakehouse.name")
 sql_end_point=connection_string= fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}").json()['properties']['sqlEndpointProperties']['connectionString']
 connection_string = "Driver={{ODBC Driver 18 for SQL Server}};Server={}".format(sql_end_point)
 pattern = '[ ,;{}()\n\t/=]'
-resp = fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/SQLDatabases").json()
-meta_item = next((item for item in resp.get('value', []) if item.get('displayName') == meta), None)
-database_name = meta_item.get('properties', {}).get('databaseName')
-meta_connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_point};database={database_name};LongAsMax=YES"
+items = fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/SQLDatabases").json()["value"]
+sql_database = next((endpoint for endpoint in items if endpoint['displayName'] == meta))
+database_name = sql_database["properties"]["databaseName"]
+server_name = sql_database["properties"]["serverFqdn"]
+meta_connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={server_name};database={database_name};LongAsMax=YES"
 
 # List Datasets from meta data
 engine = create_engine(meta_connection_string)
 with engine.connect() as alchemy_connection:
-    df_datasets = pd.read_sql_query (f"exec Meta.config.usp_OpsDatasets", alchemy_connection)
+    df_datasets = pd.read_sql_query (f"exec config.usp_OpsDatasets", alchemy_connection)
     if not df_datasets.empty:
         spark_df = spark.createDataFrame(df_datasets)
 
