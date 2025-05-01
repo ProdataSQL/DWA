@@ -95,7 +95,7 @@
                       {
                         "type": "SqlServerStoredProcedure",
                         "typeProperties": {
-                          "storedProcedureName": "dwa.usp_TableLoad",
+                          "storedProcedureName": "[dwa].[usp_TableLoad]",
                           "storedProcedureParameters": {
                             "TableID": {
                               "value": {
