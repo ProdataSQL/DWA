@@ -111,7 +111,10 @@
                                 {
                                   "name": "TableID",
                                   "type": "Int32",
-                                  "value": "@item().TableID",
+                                  "value": {
+                                    "value": "@item().TableID",
+                                    "type": "Expression"
+                                  },
                                   "direction": "Input"
                                 },
                                 {
@@ -237,18 +240,32 @@
                 },
                 "ifTrueActivities": [
                   {
-                    "type": "SqlServerStoredProcedure",
+                    "type": "Script",
                     "typeProperties": {
-                      "storedProcedureName": "[dwa].[usp_PipelinePostExecute]",
-                      "storedProcedureParameters": {
-                        "PostExecuteSQL": {
-                          "value": {
-                            "value": "@item().PostExecuteSql",
+                      "scripts": [
+                        {
+                          "text": {
+                            "value": "[dwa].[usp_PipelinePostExecute] @RunID, @PipelineID",
                             "type": "Expression"
                           },
-                          "type": "String"
+                          "type": "NonQuery",
+                          "parameters": [
+                            {
+                              "name": "RunID",
+                              "type": "Guid",
+                              "value": "@pipeline().RunId",
+                              "direction": "Input"
+                            },
+                            {
+                              "name": "PipelineID",
+                              "type": "Int32",
+                              "value": "@item().PipelineID",
+                              "direction": "Input"
+                            }
+                          ]
                         }
-                      }
+                      ],
+                      "scriptBlockExecutionTimeout": "02:00:00"
                     },
                     "linkedService": {
                       "name": "DW",
