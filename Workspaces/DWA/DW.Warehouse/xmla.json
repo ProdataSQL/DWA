@@ -1118,6 +1118,215 @@
         ]
       },
       {
+        "name": "DimAccount",
+        "sourceLineageTag": "[aw].[DimAccount]",
+        "columns": [
+          {
+            "name": "AccountKey",
+            "dataType": "string",
+            "sourceColumn": "AccountKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "AccountKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ParentAccountKey",
+            "dataType": "string",
+            "sourceColumn": "ParentAccountKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ParentAccountKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "AccountCodeAlternateKey",
+            "dataType": "int64",
+            "sourceColumn": "AccountCodeAlternateKey",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "AccountCodeAlternateKey",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ParentAccountCodeAlternateKey",
+            "dataType": "int64",
+            "sourceColumn": "ParentAccountCodeAlternateKey",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "ParentAccountCodeAlternateKey",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "AccountDescription",
+            "dataType": "string",
+            "sourceColumn": "AccountDescription",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "AccountDescription",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "AccountType",
+            "dataType": "string",
+            "sourceColumn": "AccountType",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "AccountType",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Operator",
+            "dataType": "string",
+            "sourceColumn": "Operator",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "Operator",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CustomMembers",
+            "dataType": "string",
+            "sourceColumn": "CustomMembers",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "CustomMembers",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ValueType",
+            "dataType": "string",
+            "sourceColumn": "ValueType",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ValueType",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CustomMemberOptions",
+            "dataType": "string",
+            "sourceColumn": "CustomMemberOptions",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "CustomMemberOptions",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RowChecksum",
+            "dataType": "int64",
+            "sourceColumn": "RowChecksum",
+            "formatString": "0",
+            "sourceProviderType": "int",
+            "sourceLineageTag": "RowChecksum",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "FileName",
+            "dataType": "string",
+            "sourceColumn": "FileName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FileName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LineageKey",
+            "dataType": "string",
+            "sourceColumn": "LineageKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "LineageKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "{{Partition_Name}}",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "DimAccount",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "aw"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "IsTableInBiModel",
+            "value": "False"
+          }
+        ]
+      },
+      {
         "name": "DimAccount_staging",
         "sourceLineageTag": "[stg].[DimAccount_staging]",
         "columns": [
@@ -1697,6 +1906,501 @@
             "source": {
               "type": "entity",
               "entityName": "DimDate",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "aw"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "IsTableInBiModel",
+            "value": "False"
+          }
+        ]
+      },
+      {
+        "name": "DimDepartmentGroup",
+        "sourceLineageTag": "[aw].[DimDepartmentGroup]",
+        "columns": [
+          {
+            "name": "DepartmentGroupKey",
+            "dataType": "string",
+            "sourceColumn": "DepartmentGroupKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "DepartmentGroupKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ParentDepartmentGroupKey",
+            "dataType": "string",
+            "sourceColumn": "ParentDepartmentGroupKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ParentDepartmentGroupKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "DepartmentGroupName",
+            "dataType": "string",
+            "sourceColumn": "DepartmentGroupName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "DepartmentGroupName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RowChecksum",
+            "dataType": "int64",
+            "sourceColumn": "RowChecksum",
+            "formatString": "0",
+            "sourceProviderType": "bigint",
+            "sourceLineageTag": "RowChecksum",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "FileName",
+            "dataType": "string",
+            "sourceColumn": "FileName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FileName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LineageKey",
+            "dataType": "string",
+            "sourceColumn": "LineageKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "LineageKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "{{Partition_Name}}",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "DimDepartmentGroup",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "aw"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "IsTableInBiModel",
+            "value": "False"
+          }
+        ]
+      },
+      {
+        "name": "DimOrganization",
+        "sourceLineageTag": "[aw].[DimOrganization]",
+        "columns": [
+          {
+            "name": "OrganizationKey",
+            "dataType": "string",
+            "sourceColumn": "OrganizationKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "OrganizationKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ParentOrganizationKey",
+            "dataType": "string",
+            "sourceColumn": "ParentOrganizationKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ParentOrganizationKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "PercentageOfOwnership",
+            "dataType": "string",
+            "sourceColumn": "PercentageOfOwnership",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "PercentageOfOwnership",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "OrganizationName",
+            "dataType": "string",
+            "sourceColumn": "OrganizationName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "OrganizationName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "CurrencyKey",
+            "dataType": "string",
+            "sourceColumn": "CurrencyKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "CurrencyKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RowChecksum",
+            "dataType": "int64",
+            "sourceColumn": "RowChecksum",
+            "formatString": "0",
+            "sourceProviderType": "bigint",
+            "sourceLineageTag": "RowChecksum",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "FileName",
+            "dataType": "string",
+            "sourceColumn": "FileName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FileName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LineageKey",
+            "dataType": "string",
+            "sourceColumn": "LineageKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "LineageKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "{{Partition_Name}}",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "DimOrganization",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "aw"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "IsTableInBiModel",
+            "value": "False"
+          }
+        ]
+      },
+      {
+        "name": "DimScenario",
+        "sourceLineageTag": "[aw].[DimScenario]",
+        "columns": [
+          {
+            "name": "ScenarioKey",
+            "dataType": "string",
+            "sourceColumn": "ScenarioKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ScenarioKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ScenarioName",
+            "dataType": "string",
+            "sourceColumn": "ScenarioName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ScenarioName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "FileName",
+            "dataType": "string",
+            "sourceColumn": "FileName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FileName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LineageKey",
+            "dataType": "string",
+            "sourceColumn": "LineageKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "LineageKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "{{Partition_Name}}",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "DimScenario",
+              "expressionSource": "DatabaseQuery",
+              "schemaName": "aw"
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "IsTableInBiModel",
+            "value": "False"
+          }
+        ]
+      },
+      {
+        "name": "FactFinance",
+        "sourceLineageTag": "[aw].[FactFinance]",
+        "columns": [
+          {
+            "name": "DateKey",
+            "dataType": "string",
+            "sourceColumn": "DateKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "DateKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "DepartmentGroupKey",
+            "dataType": "string",
+            "sourceColumn": "DepartmentGroupKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "DepartmentGroupKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "ScenarioKey",
+            "dataType": "string",
+            "sourceColumn": "ScenarioKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "ScenarioKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "OrganizationKey",
+            "dataType": "string",
+            "sourceColumn": "OrganizationKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "OrganizationKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "AccountKey",
+            "dataType": "string",
+            "sourceColumn": "AccountKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "AccountKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Date",
+            "dataType": "string",
+            "sourceColumn": "Date",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "Date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "Amount",
+            "dataType": "double",
+            "sourceColumn": "Amount",
+            "sourceProviderType": "decimal",
+            "sourceLineageTag": "Amount",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              },
+              {
+                "name": "PBI_FormatHint",
+                "value": "{\"isGeneralNumber\":true}"
+              }
+            ]
+          },
+          {
+            "name": "FileName",
+            "dataType": "string",
+            "sourceColumn": "FileName",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "FileName",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "LineageKey",
+            "dataType": "string",
+            "sourceColumn": "LineageKey",
+            "sourceProviderType": "varchar",
+            "sourceLineageTag": "LineageKey",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          },
+          {
+            "name": "RowChecksum",
+            "dataType": "int64",
+            "sourceColumn": "RowChecksum",
+            "formatString": "0",
+            "sourceProviderType": "bigint",
+            "sourceLineageTag": "RowChecksum",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "{{Partition_Name}}",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "FactFinance",
               "expressionSource": "DatabaseQuery",
               "schemaName": "aw"
             }
