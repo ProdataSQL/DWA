@@ -1,0 +1,15 @@
+OrganizationName,ParentOrganizationName,PercentageOfOwnership,CurrencyCode
+AdventureWorks Cycle,,1,USD
+North America Operations,AdventureWorks Cycle,1,USD
+Northeast Division,USA Operations,1,USD
+Northwest Division,USA Operations,1,USD
+Central Division,USA Operations,1,USD
+Southeast Division,USA Operations,1,USD
+Southwest Division,USA Operations,1,USD
+Canadian Division,North America Operations,0.75,CAD
+European Operations,AdventureWorks Cycle,1,EUR
+Pacific Operations,AdventureWorks Cycle,0.75,AUD
+France,European Operations,0.5,EUR
+Germany,European Operations,0.25,EUR
+Australia,Pacific Operations,0.5,AUD
+USA Operations,North America Operations,1,USD
