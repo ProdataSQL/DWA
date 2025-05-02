@@ -93,18 +93,39 @@
                     "value": "Load",
                     "activities": [
                       {
-                        "type": "SqlServerStoredProcedure",
+                        "type": "Script",
                         "typeProperties": {
-                          "storedProcedureName": "dwa.usp_TableLoad",
-                          "storedProcedureParameters": {
-                            "TableID": {
-                              "value": {
-                                "value": "@item().TableID",
+                          "scripts": [
+                            {
+                              "text": {
+                                "value": "dwa.usp_TableLoad @RunID, @TableID, @TargetObject",
                                 "type": "Expression"
                               },
-                              "type": "Int32"
+                              "type": "NonQuery",
+                              "parameters": [
+                                {
+                                  "name": "RunID",
+                                  "type": "Guid",
+                                  "direction": "Input"
+                                },
+                                {
+                                  "name": "TableID",
+                                  "type": "Int32",
+                                  "value": {
+                                    "value": "@item().TableID",
+                                    "type": "Expression"
+                                  },
+                                  "direction": "Input"
+                                },
+                                {
+                                  "name": "TargetObject",
+                                  "type": "String",
+                                  "direction": "Input"
+                                }
+                              ]
                             }
-                          }
+                          ],
+                          "scriptBlockExecutionTimeout": "02:00:00"
                         },
                         "linkedService": {
                           "name": "DW",
@@ -219,18 +240,32 @@
                 },
                 "ifTrueActivities": [
                   {
-                    "type": "SqlServerStoredProcedure",
+                    "type": "Script",
                     "typeProperties": {
-                      "storedProcedureName": "[dwa].[usp_PipelinePostExecute]",
-                      "storedProcedureParameters": {
-                        "PostExecuteSQL": {
-                          "value": {
-                            "value": "@item().PostExecuteSql",
+                      "scripts": [
+                        {
+                          "text": {
+                            "value": "[dwa].[usp_PipelinePostExecute] @RunID, @PipelineID",
                             "type": "Expression"
                           },
-                          "type": "String"
+                          "type": "NonQuery",
+                          "parameters": [
+                            {
+                              "name": "RunID",
+                              "type": "Guid",
+                              "value": "@pipeline().RunId",
+                              "direction": "Input"
+                            },
+                            {
+                              "name": "PipelineID",
+                              "type": "Int32",
+                              "value": "@item().PipelineID",
+                              "direction": "Input"
+                            }
+                          ]
                         }
-                      }
+                      ],
+                      "scriptBlockExecutionTimeout": "02:00:00"
                     },
                     "linkedService": {
                       "name": "DW",
