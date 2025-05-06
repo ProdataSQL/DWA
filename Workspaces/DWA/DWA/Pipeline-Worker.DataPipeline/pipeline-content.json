@@ -253,13 +253,19 @@
                             {
                               "name": "RunID",
                               "type": "Guid",
-                              "value": "@pipeline().RunId",
+                              "value": {
+                                "value": "@pipeline().RunId",
+                                "type": "Expression"
+                              },
                               "direction": "Input"
                             },
                             {
                               "name": "PipelineID",
                               "type": "Int32",
-                              "value": "@item().PipelineID",
+                              "value": {
+                                "value": "@item().PipelineID",
+                                "type": "Expression"
+                              },
                               "direction": "Input"
                             }
                           ]
