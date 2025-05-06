@@ -98,16 +98,11 @@
                           "scripts": [
                             {
                               "text": {
-                                "value": "dwa.usp_TableLoad @RunID, @TableID, @TargetObject",
+                                "value": "dwa.usp_TableLoad NULL, @TableID, NULL",
                                 "type": "Expression"
                               },
                               "type": "NonQuery",
                               "parameters": [
-                                {
-                                  "name": "RunID",
-                                  "type": "Guid",
-                                  "direction": "Input"
-                                },
                                 {
                                   "name": "TableID",
                                   "type": "Int32",
@@ -115,11 +110,6 @@
                                     "value": "@item().TableID",
                                     "type": "Expression"
                                   },
-                                  "direction": "Input"
-                                },
-                                {
-                                  "name": "TargetObject",
-                                  "type": "String",
                                   "direction": "Input"
                                 }
                               ]
