@@ -136,7 +136,7 @@
                           "secureInput": false,
                           "secureOutput": false
                         },
-                        "name": "usp_TableLoad1",
+                        "name": "usp_TableLoad",
                         "dependsOn": []
                       }
                     ]
