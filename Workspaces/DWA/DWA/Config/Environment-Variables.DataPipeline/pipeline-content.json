@@ -32,6 +32,20 @@
                 "type": "String",
                 "content": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
               }
+            },
+            {
+              "key": "DWServerName",
+              "value": {
+                "type": "String",
+                "content": "fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com"
+              }
+            },
+            {
+              "key": "DWDatabaseName",
+              "value": {
+                "type": "String",
+                "content": "DW"
+              }
             }
           ],
           "setSystemVariable": true
