@@ -106,7 +106,10 @@
                                 {
                                   "name": "TableID",
                                   "type": "Int32",
-                                  "value": "@item().TableID",
+                                  "value": {
+                                    "value": "@item().TableID",
+                                    "type": "Expression"
+                                  },
                                   "direction": "Input"
                                 }
                               ]
