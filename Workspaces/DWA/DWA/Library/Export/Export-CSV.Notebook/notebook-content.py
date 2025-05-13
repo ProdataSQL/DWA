@@ -10,7 +10,12 @@
 # META     "lakehouse": {
 # META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
 # META       "default_lakehouse_name": "FabricLH",
-# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -25,13 +30,24 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"Object":"FabricLH.dbo.accountrangerules"}'
-TargetSettings ='{"Directory": "export/csv", "File":"AccountRangeRules.csv"}'
+SourceSettings ='{"Object":"FabricLH_NS.dbo.account"}'
+TargetSettings ='{"Directory": "export/csv", "File":"Account.csv"}'
 SourceConnectionSettings=None
 TargetConnectionSettings=None
 ActivitySettings=None
 LineageKey = 0
 
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+%run SQL-Connection-Shared-Functions
 
 # METADATA ********************
 
@@ -53,7 +69,6 @@ from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, NullType
-from builtin.sql_connection_helper import create_engine
 
 SourceSettings = SourceSettings or '{}'
 TargetSettings = TargetSettings or '{}'
@@ -93,8 +108,6 @@ pattern = '[ ,;{}()\n\t/=]'
 
 # List Datasets from meta data
 engine = create_engine(connection_string)
-
-
 
 source_object = source_settings.get("Object")
 

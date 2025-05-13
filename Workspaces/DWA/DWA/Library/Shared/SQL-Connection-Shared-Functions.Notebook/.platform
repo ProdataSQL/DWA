@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Export-CSV",
+    "displayName": "SQL-Connection-Shared-Functions",
     "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "269a1c80-ee7a-aaf4-4884-e9be6003b87a"
+    "logicalId": "4d28b7db-9c96-b5d5-4c35-765dcacecce3"
   }
 }
