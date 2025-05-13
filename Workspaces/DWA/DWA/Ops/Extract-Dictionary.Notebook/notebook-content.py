@@ -39,8 +39,18 @@ meta="Meta"
 
 # CELL ********************
 
+%run SQL-Connection-Shared-Functions
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
 import pandas as pd
-from builtin.sql_connection_helper import create_engine
 import sempy.fabric as fabric
 import re
 

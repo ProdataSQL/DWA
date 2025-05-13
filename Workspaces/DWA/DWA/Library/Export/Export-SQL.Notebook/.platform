@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Export-Parquet",
+    "displayName": "Export-SQL",
     "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "5b301002-deed-89a7-457b-323d7291e4d8"
+    "logicalId": "fce32c02-c4cd-bf07-474a-8609ff5cf3bc"
   }
 }
