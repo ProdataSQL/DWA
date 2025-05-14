@@ -100,9 +100,18 @@
                     "type": "InvokePipeline",
                     "typeProperties": {
                       "parameters": {
-                        "PackageGroup": "@pipeline().parameters.PackageGroup",
-                        "PipelineID": "@pipeline().parameters.PipelineID",
-                        "PipelineSequence": "@item().PipelineSequence"
+                        "PackageGroup": {
+                          "value": "@pipeline().parameters.PackageGroup",
+                          "type": "Expression"
+                        },
+                        "PipelineID": {
+                          "value": "@pipeline().parameters.PipelineID",
+                          "type": "Expression"
+                        },
+                        "PipelineSequence": {
+                          "value": "@item().PipelineSequence",
+                          "type": "Expression"
+                        }
                       },
                       "waitOnCompletion": true,
                       "workspaceId": "00000000-0000-0000-0000-000000000000",
@@ -131,7 +140,10 @@
             {
               "type": "Fail",
               "typeProperties": {
-                "message": "@activity('Pipeline-Worker').output.pipelineReturnValue",
+                "message": {
+                  "value": "@activity('Pipeline-Worker').output.pipelineReturnValue",
+                  "type": "Expression"
+                },
                 "errorCode": {
                   "value": "001",
                   "type": "Expression"
@@ -151,7 +163,10 @@
               "type": "SetVariable",
               "typeProperties": {
                 "variableName": "Continue",
-                "value": "@item().ContinueOnError"
+                "value": {
+                  "value": "@item().ContinueOnError",
+                  "type": "Expression"
+                }
               },
               "policy": {
                 "secureInput": false,
@@ -162,7 +177,7 @@
                 {
                   "activity": "If Continue",
                   "dependencyConditions": [
-                    "Succeeded"
+                    "Failed"
                   ]
                 }
               ]
