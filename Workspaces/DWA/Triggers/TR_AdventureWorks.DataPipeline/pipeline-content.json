@@ -11,7 +11,7 @@
           },
           "waitOnCompletion": true,
           "workspaceId": "00000000-0000-0000-0000-000000000000",
-          "pipelineId": "83cfef7e-40ed-9df8-4963-ee3340af6127",
+          "pipelineId": "1967f137-61fb-bc8c-4f29-d84704ff05ff",
           "operationType": "InvokeFabricPipeline"
         },
         "externalReferences": {
@@ -24,7 +24,7 @@
           "secureInput": false,
           "secureOutput": false
         },
-        "name": "TR_AdventureWorks",
+        "name": "TR_AventureWorks",
         "dependsOn": []
       }
     ]
