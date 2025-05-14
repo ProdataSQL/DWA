@@ -104,35 +104,59 @@
                 "storedProcedureName": "[audit].[usp_PipelineStart]",
                 "storedProcedureParameters": {
                   "LineageKey": {
-                    "value": "@item().LineageKey",
+                    "value": {
+                      "value": "@item().LineageKey",
+                      "type": "Expression"
+                    },
                     "type": "Guid"
                   },
                   "PackageGroup": {
-                    "value": "@pipeline().parameters.PackageGroup",
+                    "value": {
+                      "value": "@pipeline().parameters.PackageGroup",
+                      "type": "Expression"
+                    },
                     "type": "String"
                   },
                   "ParentRunID": {
-                    "value": "@pipeline()?.TriggeredByPipelineRunId",
+                    "value": {
+                      "value": "@pipeline()?.TriggeredByPipelineRunId",
+                      "type": "Expression"
+                    },
                     "type": "Guid"
                   },
                   "Pipeline": {
-                    "value": "@pipeline().Pipeline",
+                    "value": {
+                      "value": "@pipeline().Pipeline",
+                      "type": "Expression"
+                    },
                     "type": "Guid"
                   },
                   "PipelineID": {
-                    "value": "@item().PipelineID",
+                    "value": {
+                      "value": "@item().PipelineID",
+                      "type": "Expression"
+                    },
                     "type": "Int32"
                   },
                   "PipelineName": {
-                    "value": "@pipeline().PipelineName",
+                    "value": {
+                      "value": "@pipeline().PipelineName",
+                      "type": "Expression"
+                    },
                     "type": "String"
                   },
                   "RunID": {
-                    "value": "@pipeline().RunId",
+                    "value": {
+                      "value": "@pipeline().RunId",
+                      "type": "Expression"
+                    },
                     "type": "Guid"
                   },
                   "WorkspaceID": {
-                    "value": "@pipeline().DataFactory",
+                    "value": {
+                      "value": "@pipeline().DataFactory",
+                      "type": "Expression"
+                    },
                     "type": "Guid"
                   }
                 }
@@ -190,31 +214,38 @@
                               "type": "string"
                             },
                             "TargetSettings": {
-                              "value": "@item().TargetSettings",
+                              "value": {
+                                "value": "@item().TargetSettings",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             },
                             "ActivitySettings": {
-                              "value": "@item().ActivitySettings",
+                              "value": {
+                                "value": "@item().ActivitySettings",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             },
                             "SourceConnectionSettings": {
-                              "value": "@item().SourceConnectionSettings",
+                              "value": {
+                                "value": "@item().SourceConnectionSettings",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             },
                             "TargetConnectionSettings": {
-                              "value": "@item().TargetConnectionSettings",
+                              "value": {
+                                "value": "@item().TargetConnectionSettings",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             },
                             "LineageKey": {
-                              "value": "@item().LineageKey",
-                              "type": "string"
-                            },
-                            "lakehouse": {
-                              "value": "@if(\n    contains(string(item().LakehouseConnectionSettings), 'lakehouse'),\n    json(string(item().LakehouseConnectionSettings)).lakehouse,\n    null\n)",
-                              "type": "string"
-                            },
-                            "lakehouseId": {
-                              "value": "@if(\n    contains(string(item().LakehouseConnectionSettings), 'lakehouseId'),\n    json(string(item().LakehouseConnectionSettings)).lakehouseId,\n    null\n)",
+                              "value": {
+                                "value": "@item().LineageKey",
+                                "type": "Expression"
+                              },
                               "type": "string"
                             }
                           }
@@ -248,7 +279,10 @@
                                 {
                                   "name": "TableID",
                                   "type": "Int32",
-                                  "value": "@item().TableID",
+                                  "value": {
+                                    "value": "@item().TableID",
+                                    "type": "Expression"
+                                  },
                                   "direction": "Input"
                                 }
                               ]
@@ -287,14 +321,26 @@
                         "type": "InvokePipeline",
                         "typeProperties": {
                           "parameters": {
-                            "SourceSettings": "@item().SourceSettings",
+                            "SourceSettings": {
+                              "value": "@item().SourceSettings",
+                              "type": "Expression"
+                            },
                             "TargetSettings": {
                               "value": "@item().TargetSettings",
                               "type": "Expression"
                             },
-                            "SourceConnectionSettings": "@item().SourceConnectionSettings",
-                            "TargetConnectionSettings": "@item().TargetConnectionSettings",
-                            "ActivitySettings": "@item().ActivitySettings"
+                            "SourceConnectionSettings": {
+                              "value": "@item().SourceConnectionSettings",
+                              "type": "Expression"
+                            },
+                            "TargetConnectionSettings": {
+                              "value": "@item().TargetConnectionSettings",
+                              "type": "Expression"
+                            },
+                            "ActivitySettings": {
+                              "value": "@item().ActivitySettings",
+                              "type": "Expression"
+                            }
                           },
                           "waitOnCompletion": true,
                           "workspaceId": {
@@ -327,7 +373,10 @@
                   {
                     "type": "Fail",
                     "typeProperties": {
-                      "message": "@{item().TemplateType} not found in switch statement, or @{item().Template} not connected to the Lakehouse or not in config.Artefacts view",
+                      "message": {
+                        "value": "@{item().TemplateType} not found in switch statement, or @{item().Template} not connected to the Lakehouse or not in config.Artefacts view",
+                        "type": "Expression"
+                      },
                       "errorCode": "0001"
                     },
                     "name": "Fail1",
@@ -367,13 +416,19 @@
                             {
                               "name": "RunID",
                               "type": "Guid",
-                              "value": "@pipeline().RunId",
+                              "value": {
+                                "value": "@pipeline().RunId",
+                                "type": "Expression"
+                              },
                               "direction": "Input"
                             },
                             {
                               "name": "PipelineID",
                               "type": "Int32",
-                              "value": "@item().PipelineID",
+                              "value": {
+                                "value": "@item().PipelineID",
+                                "type": "Expression"
+                              },
                               "direction": "Input"
                             }
                           ]
