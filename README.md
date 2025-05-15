@@ -31,9 +31,8 @@ https://prodata.ie/fabric-poc/
 ### Introduction to DWA in Fabric
 [![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)](https://www.youtube.com/watch?v=9hkCDL8TKSQ)
 
-### 20 Minute Demo of autimated Ingest, Extract, Transform and Load
-[![image](https://github.com/user-attachments/assets/47026239-97f7-48a9-81b5-da2d4d070d9f)]
-(https://www.youtube.com/watch?v=Wc_JE8YsT90)
+### 20-Minute Demo of automated Ingest, Extract, Transform and Load
+[![image](https://github.com/user-attachments/assets/47026239-97f7-48a9-81b5-da2d4d070d9f)](https://www.youtube.com/watch?v=Wc_JE8YsT90)
 
-
-  
+### 96-Minute DWA Presentation & Demo
+[![image](https://github.com/user-attachments/assets/db7b7a0c-9701-4a83-af64-5e86fa988b20)](https://youtu.be/SiN72RdmR8o)
