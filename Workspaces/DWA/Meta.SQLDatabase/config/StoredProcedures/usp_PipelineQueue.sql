@@ -1,4 +1,3 @@
-
 /*
 Description:	Return a Queue of Pipelines to Run based on PipelineSequence
 Used By:		ADF Pipeline-Worker 
@@ -13,8 +12,9 @@ History:
 	11/09/2024 Aidan, Ignores PackageGroup if PipelineID is specified
 	31/09/2024 Kristan, added to config schema
 	06/11/2024 Aidan, Added TableID 
+	29/06/2025 Bob, Added TemplateWorkspaceID and SessionTag
 */
-CREATE    PROC [config].[usp_PipelineQueue] 
+CREATE     PROC [config].[usp_PipelineQueue] 
 	@PackageGroup [varchar](50) ='ALL'
 	,@PipelineSequence [smallint] =-1
 	,@PipelineID [int] =-1
@@ -64,16 +64,19 @@ BEGIN
 		INNER JOIN config.PackageGroupLinks pgl  ON pgl.PackageGroup  = TRIM(pg2.value) 
 		INNER JOIN config.PackageGroupLinks pgl2 ON pgl2.PackageGroup =  pgl.ChildPackageGroup
 	)
-	SELECT NEWID() as LineageKey, [PipelineID], [PipelineSequence],[SourceConnectionSettings],[TargetConnectionSettings],[SourceSettings],[TargetSettings],[ActivitySettings],[PreExecuteSQL],[PostExecuteSQL],[Stage]
+	SELECT NEWID() as LineageKey, [PipelineID], [PipelineSequence],[SourceConnectionSettings],[TargetConnectionSettings]
+	, [SourceSettings] 
+	, [TargetSettings],[ActivitySettings],[PreExecuteSQL],[PostExecuteSQL],[Stage]
 	, [Template], coalesce(TemplateType, Template) as TemplateType, TemplateID, p.TableID as TableID
+	, TemplateWorkspaceID
+	, p.SessionTag
 	FROM [config].[PipelineMeta] p
 	WHERE p.Enabled=1 
 	AND (p.PackageGroup=@PackageGroup OR p.[PackageGroup] IN (SELECT PackageGroup FROM pg) or @PackageGroup ='ALL')
 	AND (p.PipelineID=@PipelineID OR @PipelineID=-1)
 	AND (p.PipelineSequence=@PipelineSequence OR @PipelineSequence =-1) 
 	ORDER BY p.PipelineSequence, p.PipelineID 
-
-
+ 
 END
 
 GO

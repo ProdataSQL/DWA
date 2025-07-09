@@ -1,3 +1,6 @@
+
+
+
 /*
 Description: Build PipelineMeta table 
 Example:		
@@ -5,10 +8,12 @@ Example:
 History:
 	11/11/2024	Kristan, removed ConfigurationValue
 	11/11/2024	Kristan, fixed p and pg connections settings
-	03/12/2024 	Kristan, Removed TemplateType from config.Templates
+	03/12/2024 	Kristan, removed TemplateType from config.Templates
+	10/03/2024	Kristan, added SessionTag
+	25/04/2025	Kristan, added LakehouseConnectionSettings
+	29/06/2025  Bob, Added support for multiple workspaces for Templates
 */
-
-CREATE  PROC [config].[usp_PipelineBuildMetaData]
+CREATE PROC [config].[usp_PipelineBuildMetaData]
 @PipelineID int =null
 AS
 BEGIN
@@ -72,7 +77,9 @@ BEGIN
 			   ,@ActivityType VARCHAR(10) = NULL
 			   ,@Pipeline varchar(200) = NULL
 			   ,@TemplateType varchar(50) = NULL
+			   ,@TemplateWorkspace varchar(50) = NULL
 			   ,@TableID int = NULL
+			   ,@SessionTag varchar(50) = NULL
 			   ,@ID UNIQUEIDENTIFIER = NULL
 
 		SELECT	@Pipeline=p.Pipeline
@@ -104,6 +111,8 @@ BEGIN
 			  ,@TemplateType= t.ArtefactType
 			  ,@ID=a.artefact_id
 			  ,@TableID = p.TableID
+			  ,@SessionTag = COALESCE(p.SessionTag, pg.SessionTag, 'ETL')
+			  ,@TemplateWorkspace=a.workspace_id
 			  FROM [Pipelines] p
 		LEFT JOIN config.PipelineGroups pg ON pg.PipelineGroupID = p.PipelineGroupID
 		LEFT JOIN config.[Templates] t on coalesce(p.[Template],pg.[Template]) =t.[Template]
@@ -115,7 +124,7 @@ BEGIN
 		WHERE p.PipelineID = @PipelineID
 
 		--DEBUG
-		--SELECT @Pipeline AS Pipeline,@Template AS Template,@SourceConnectionSettings1 AS SourceConnectionSettings1,@SourceConnectionSettings2 AS SourceConnectionSettings2,@SourceConnectionSettings3 AS SourceConnectionSettings3,@SourceConnectionSettings4 AS SourceConnectionSettings4,@TargetConnectionSettings1 AS TargetConnectionSettings1,@TargetConnectionSettings2 AS TargetConnectionSettings2,@TargetConnectionSettings3 AS TargetConnectionSettings3,@TargetConnectionSettings4 AS TargetConnectionSettings4,@SourceSettings1 AS SourceSettings1,@SourceSettings2 AS SourceSettings2,@SourceSettings3 AS SourceSettings3,@TargetSettings1 AS TargetSettings1,@TargetSettings2 AS TargetSettings2,@TargetSettings3 AS TargetSettings3,@ActivitySettings1 AS ActivitySettings1,@ActivitySettings2 AS ActivitySettings2,@PipelineSequence AS PipelineSequence,@PackageGroup AS PackageGroup,@PreExecuteSQL AS PreExecuteSQL,@PostExecuteSQL AS PostExecuteSQL,@Enabled AS Enabled,@Stage AS Stage,@StartDateTime AS StartDateTime,@ActivityType AS ActivityType,@TemplateType AS TemplateType,@ID AS ArtefactID, @TableID as TableID
+		--SELECT @Pipeline AS Pipeline,@Template AS Template,@SourceConnectionSettings1 AS SourceConnectionSettings1,@SourceConnectionSettings2 AS SourceConnectionSettings2,@SourceConnectionSettings3 AS SourceConnectionSettings3,@SourceConnectionSettings4 AS SourceConnectionSettings4,@TargetConnectionSettings1 AS TargetConnectionSettings1,@TargetConnectionSettings2 AS TargetConnectionSettings2,@TargetConnectionSettings3 AS TargetConnectionSettings3,@TargetConnectionSettings4 AS TargetConnectionSettings4,@SourceSettings1 AS SourceSettings1,@SourceSettings2 AS SourceSettings2,@SourceSettings3 AS SourceSettings3,@TargetSettings1 AS TargetSettings1,@TargetSettings2 AS TargetSettings2,@TargetSettings3 AS TargetSettings3,@ActivitySettings1 AS ActivitySettings1,@ActivitySettings2 AS ActivitySettings2,@PipelineSequence AS PipelineSequence,@PackageGroup AS PackageGroup,@PreExecuteSQL AS PreExecuteSQL,@PostExecuteSQL AS PostExecuteSQL,@Enabled AS Enabled,@Stage AS Stage,@StartDateTime AS StartDateTime,@ActivityType AS ActivityType,@TemplateType AS TemplateType,@ID AS ArtefactID, @TableID as TableID, @SessionTag as SessionTag, @LakehouseConnectionSettings as LakehouseConnectionSettings
 		
 		PRINT  @PipelineID
 
@@ -165,51 +174,50 @@ BEGIN
 					  AND NOT EXISTS (SELECT 1 FROM SCS3)
 					  AND [key] NOT IN (SELECT [key] FROM SCS1)
 				) s),
-				@SourceSettings =  (SELECT '{' + STRING_AGG('"' + s.[key] + '":' + CASE WHEN s.type = 1 THEN '"' + s.[value] + '"' WHEN s.type = 0 THEN 'null' ELSE s.[value] END,',') + '}' FROM 
-	 								(
-	 										SELECT * FROM SS1
-	 										UNION ALL
-	 										SELECT * FROM SS2
-	 										WHERE [key] NOT IN (SELECT [key] FROM SS1)
-	 										UNION ALL
-	 										SELECT * FROM OPENJSON(@SourceSettings3)
-	 										WHERE [key] NOT IN (SELECT [key] FROM SS1)
-	 										  AND [key] NOT IN (SELECT [key] FROM SS2)
-	 								) s ),
-				@TargetConnectionSettings =  (SELECT '{' + STRING_AGG('"' + s.[key] + '":' + CASE WHEN s.type = 1 THEN '"' + s.[value] + '"' WHEN s.type = 0 THEN 'null' ELSE s.[value] END,',') + '}' FROM 
-	 								(
-	 										SELECT * FROM TCS1
-											UNION ALL
-											SELECT * FROM TCS4
-											WHERE EXISTS (SELECT 1 FROM TCS4)
-												AND [key] NOT IN (SELECT [key] FROM TCS1)
+				@SourceSettings = (
+				SELECT '{' + STRING_AGG('"' + s.[key] + '":' + CASE WHEN s.type = 1 THEN '"' + s.[value] + '"' WHEN s.type = 0 THEN 'null' ELSE s.[value] END,',') + '}' FROM (
+	 					SELECT * FROM SS1
+	 					UNION ALL
+	 					SELECT * FROM SS2
+	 					WHERE [key] NOT IN (SELECT [key] FROM SS1)
+	 					UNION ALL
+	 					SELECT * FROM OPENJSON(@SourceSettings3)
+	 					WHERE [key] NOT IN (SELECT [key] FROM SS1)
+	 						AND [key] NOT IN (SELECT [key] FROM SS2)
+	 			) s ),
+				@TargetConnectionSettings = (
+				SELECT '{' + STRING_AGG('"' + s.[key] + '":' + CASE WHEN s.type = 1 THEN '"' + s.[value] + '"' WHEN s.type = 0 THEN 'null' ELSE s.[value] END,',') + '}' FROM (
+	 					SELECT * FROM TCS1
+						UNION ALL
+						SELECT * FROM TCS4
+						WHERE EXISTS (SELECT 1 FROM TCS4)
+							AND [key] NOT IN (SELECT [key] FROM TCS1)
 
-											UNION ALL
-											SELECT * FROM TCS3
-											WHERE NOT EXISTS (SELECT 1 FROM TCS4)
-												AND [key] NOT IN (SELECT [key] FROM TCS1)
+						UNION ALL
+						SELECT * FROM TCS3
+						WHERE NOT EXISTS (SELECT 1 FROM TCS4)
+							AND [key] NOT IN (SELECT [key] FROM TCS1)
 
-											UNION ALL
-											SELECT * FROM TCS2
-											WHERE NOT EXISTS (SELECT 1 FROM TCS4)
-												AND NOT EXISTS (SELECT 1 FROM TCS3)
-												AND [key] NOT IN (SELECT [key] FROM TCS1)
-											) s),
-				@TargetSettings = (SELECT '{' + STRING_AGG('"' + s.[key] + '":' + CASE WHEN s.type = 1 THEN '"' + s.[value] + '"' WHEN s.type = 0 THEN 'null' ELSE s.[value] END,',') + '}' FROM 
-									(
-											SELECT * FROM TS1
-											UNION ALL
-											SELECT * FROM TS2
-											WHERE [key] NOT IN (SELECT [key] FROM TS1)
-											UNION ALL 
-											SELECT * FROM OPENJSON(@TargetSettings3)
-											WHERE [key] NOT IN (SELECT [key] FROM TS1)
-											  AND [key] NOT IN (SELECT [key] FROM TS2)
-									) s)
-			
+						UNION ALL
+						SELECT * FROM TCS2
+						WHERE NOT EXISTS (SELECT 1 FROM TCS4)
+							AND NOT EXISTS (SELECT 1 FROM TCS3)
+							AND [key] NOT IN (SELECT [key] FROM TCS1)
+				) s),
+				@TargetSettings = (
+				SELECT '{' + STRING_AGG('"' + s.[key] + '":' + CASE WHEN s.type = 1 THEN '"' + s.[value] + '"' WHEN s.type = 0 THEN 'null' ELSE s.[value] END,',') + '}' FROM (
+						SELECT * FROM TS1
+						UNION ALL
+						SELECT * FROM TS2
+						WHERE [key] NOT IN (SELECT [key] FROM TS1)
+						UNION ALL 
+						SELECT * FROM OPENJSON(@TargetSettings3)
+						WHERE [key] NOT IN (SELECT [key] FROM TS1)
+							AND [key] NOT IN (SELECT [key] FROM TS2)
+				) s)			
 		IF NOT EXISTS (SELECT * FROM [config].[PipelineMeta] WHERE PipelineID=@PipelineID)
-			INSERT INTO [config].[PipelineMeta]	([PipelineID], [Pipeline], [Template], [SourceConnectionSettings], [TargetConnectionSettings], [SourceSettings], [TargetSettings], [ActivitySettings], [PipelineSequence], [PackageGroup], [PreExecuteSQL], [PostExecuteSQL], [Enabled], [Stage],TemplateType, TemplateID,TableID)
-			VALUES (@PipelineID, @Pipeline,@Template, @SourceConnectionSettings, @TargetConnectionSettings, @SourceSettings, @TargetSettings, @ActivitySettings, @PipelineSequence, @PackageGroup, @PreExecuteSQL, @PostExecuteSQL, @Enabled, @Stage,@TemplateType,@ID, @TableID)
+			INSERT INTO [config].[PipelineMeta]	([PipelineID], [Pipeline], [Template], [SourceConnectionSettings], [TargetConnectionSettings], [SourceSettings], [TargetSettings], [ActivitySettings], [PipelineSequence], [PackageGroup], [PreExecuteSQL], [PostExecuteSQL], [Enabled], [Stage],TemplateType, TemplateID,TableID,SessionTag,TemplateWorkspaceID)
+			VALUES (@PipelineID, @Pipeline,@Template, @SourceConnectionSettings, @TargetConnectionSettings, @SourceSettings, @TargetSettings, @ActivitySettings, @PipelineSequence, @PackageGroup, @PreExecuteSQL, @PostExecuteSQL, @Enabled, @Stage,@TemplateType,@ID, @TableID,@SessionTag, @TemplateWorkspace)
 	
 		SELECT TOP 1 @PipelineID =PipelineID 
 		FROM Pipelines 
