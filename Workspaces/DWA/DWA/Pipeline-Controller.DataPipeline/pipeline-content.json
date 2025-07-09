@@ -83,6 +83,7 @@
       {
         "type": "ForEach",
         "typeProperties": {
+          "isSequential": true,
           "items": {
             "value": "@activity('usp_PipelineSequence').output.resultsets[0].rows",
             "type": "Expression"

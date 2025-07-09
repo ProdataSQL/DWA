@@ -15,7 +15,9 @@ CREATE TABLE [config].[PipelineMeta] (
     [Stage]                    VARCHAR (50)     NULL,
     [TemplateType]             VARCHAR (50)     NULL,
     [TemplateID]               UNIQUEIDENTIFIER NULL,
-    [TableID]                  INT              NULL
+    [TableID]                  INT              NULL,
+    [SessionTag]               VARCHAR (50)     NULL,
+    [TemplateWorkspaceID]      UNIQUEIDENTIFIER NULL
 );
 
 

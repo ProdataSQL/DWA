@@ -14,7 +14,8 @@ CREATE TABLE [config].[edwTables] (
     [InsertFlag]          BIT            NULL,
     [UpdateFlag]          BIT            NULL,
     [DeleteFlag]          BIT            NULL,
-    [DedupeRows]          BIT            NULL,
+    [DedupeFlag]          BIT            NULL,
+    [DedupeOrderBy]       VARCHAR (4000) NULL,
     [AutoDrop]            BIT            NULL,
     [CTAS]                BIT            NULL,
     [AutoTruncate]        BIT            NULL,
@@ -23,7 +24,7 @@ CREATE TABLE [config].[edwTables] (
     [PrestageSourceFlag]  BIT            NULL,
     [PrestageTargetFlag]  BIT            NULL,
     [PrestageSchema]      VARCHAR (8000) NULL,
-    [PrestageTable]       VARCHAR (8000) NULL,
+    [TableSwapFlag]       BIT            NULL,
     [DeltaTargetObject]   VARCHAR (8000) NULL,
     [PreLoadSQL]          VARCHAR (8000) NULL,
     [PostLoadSQL]         VARCHAR (8000) NULL,
@@ -34,7 +35,10 @@ CREATE TABLE [config].[edwTables] (
     [IsIncremental]       BIT            NULL,
     [SCD]                 BIT            NULL,
     [Identity]            BIT            NULL,
-    CONSTRAINT [PK_edwTables] PRIMARY KEY CLUSTERED ([TableID] ASC)
+    [IdentityMethod]      VARCHAR (20)   NULL,
+    [RowChecksum]         BIT            NULL,
+    CONSTRAINT [PK_edwTables] PRIMARY KEY CLUSTERED ([TableID] ASC),
+    CONSTRAINT [FK_edwTables_PackageGroups] FOREIGN KEY ([DefaultPackageGroup]) REFERENCES [config].[PackageGroups] ([PackageGroup])
 );
 
 

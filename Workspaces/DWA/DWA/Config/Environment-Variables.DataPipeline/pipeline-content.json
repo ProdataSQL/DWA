@@ -46,6 +46,20 @@
                 "type": "String",
                 "content": "DW"
               }
+            },
+            {
+              "key": "LakehouseID",
+              "value": {
+                "type": "String",
+                "content": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
+              }
+            },
+            {
+              "key": "MetaDatabaseID",
+              "value": {
+                "type": "String",
+                "content": "fe70c606-af27-4f64-973a-2be877526212"
+              }
             }
           ],
           "setSystemVariable": true

@@ -25,9 +25,7 @@ CREATE TABLE [audit].[PipelineLog] (
     [DataWritten]      BIGINT           NULL,
     [ExtendedLog]      VARCHAR (8000)   NULL,
     [DebugOutput]      VARCHAR (8000)   NULL,
-    CONSTRAINT [PK_PipelineLog] PRIMARY KEY CLUSTERED ([LineageKey] ASC),
-    CONSTRAINT [FK_PipelineLog_PackageGroups] FOREIGN KEY ([PackageGroup]) REFERENCES [config].[PackageGroups] ([PackageGroup]),
-    CONSTRAINT [FK_PipelineLog_Pipelines] FOREIGN KEY ([PipelineID]) REFERENCES [config].[Pipelines] ([PipelineID])
+    CONSTRAINT [PK_PipelineLog] PRIMARY KEY CLUSTERED ([LineageKey] ASC)
 );
 
 

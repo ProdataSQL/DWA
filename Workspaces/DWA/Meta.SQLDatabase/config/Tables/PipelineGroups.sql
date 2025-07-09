@@ -16,6 +16,8 @@ CREATE TABLE [config].[PipelineGroups] (
     [SourceConnectionSettings] VARCHAR (8000) NULL,
     [TargetConnectionSettings] VARCHAR (8000) NULL,
     [ContinueOnError]          VARCHAR (200)  NULL,
+    [SessionTag]               VARCHAR (50)   NULL,
+    [LakehouseConfigurationID] INT            NULL,
     CONSTRAINT [PK_PipelineGroups] PRIMARY KEY NONCLUSTERED ([PipelineGroupID] ASC),
     CONSTRAINT [FK_PipelineGroups_Configurations] FOREIGN KEY ([SourceConfigurationID]) REFERENCES [config].[Configurations] ([ConfigurationID]),
     CONSTRAINT [FK_PipelineGroups_Configurations1] FOREIGN KEY ([TargetConfigurationID]) REFERENCES [config].[Configurations] ([ConfigurationID]),

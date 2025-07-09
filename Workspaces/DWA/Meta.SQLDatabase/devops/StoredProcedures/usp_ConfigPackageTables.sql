@@ -1,5 +1,4 @@
 
-
 /*
 Description:	Return Templates, config.PipelineGroups, config.Pipelines tables of associated PackageGroup or PipelineID 
 Used By:		Deploy-Artefacts
@@ -78,8 +77,66 @@ BEGIN
 			AND (p.PipelineID = @PipelineID OR @PipelineID = -1)
 		)
 	) ORDER BY t.Template ASC;
+			WITH pg AS 
+		(
+			SELECT CONVERT(VARCHAR(50), TRIM(value)) AS PackageGroup 
+			FROM string_split (@PackageGroup, ',') 
+			WHERE value <> 'ALL'
+		
+			UNION ALL
+		
+			SELECT PackageGroup 
+			FROM config.PackageGroups pg 
+			WHERE @PackageGroup = 'ALL' and @PipelineID = -1
+		
+			UNION 
+		
+			SELECT pgl.ChildPackageGroup AS PackageGroup 
+			FROM string_split(@PackageGroup, ',') pg2 
+			INNER JOIN config.PackageGroupLinks pgl ON pgl.PackageGroup = TRIM(pg2.value)
+		
+			UNION 
+		
+			SELECT pgl2.ChildPackageGroup AS PackageGroup 
+			FROM string_split(@PackageGroup, ',') pg2 
+			INNER JOIN config.PackageGroupLinks pgl ON pgl.PackageGroup = TRIM(pg2.value)
+			INNER JOIN config.PackageGroupLinks pgl2 ON pgl2.PackageGroup = pgl.ChildPackageGroup
+		)
+		SELECT 
+			pg.PackageGroup, 
+			pg.Monitored, 
+			pg.SortOrder
+		FROM 
+			config.PackageGroups pg
+		WHERE 
+			pg.PackageGroup IN (SELECT PackageGroup FROM pg) -- Check if the PackageGroup matches
+		ORDER BY 
+			pg.PackageGroup;
+	WITH RelevantPackages AS 
+	(
 
-	
+		SELECT TRIM(value) AS PackageGroup 
+		FROM string_split(@PackageGroup, ',') 
+		WHERE value <> 'ALL'
+    
+		UNION ALL
+    
+		SELECT PackageGroup 
+		FROM config.PackageGroups 
+		WHERE @PackageGroup = 'ALL' and @PipelineID = -1
+		)
+
+		SELECT 
+			pgl.PackageGroup, 
+			pgl.ChildPackageGroup
+		FROM 
+			config.PackageGroupLinks pgl
+		WHERE 
+			pgl.PackageGroup IN (SELECT PackageGroup FROM RelevantPackages)
+		ORDER BY 
+			pgl.PackageGroup, 
+			pgl.ChildPackageGroup;
+
 		WITH pg AS 
 	(
 		SELECT CONVERT(VARCHAR(50), TRIM(value)) AS PackageGroup 
@@ -117,6 +174,7 @@ BEGIN
 			 OR @PackageGroup = 'ALL')
 		AND (p.PipelineID = @PipelineID OR @PipelineID = -1)
 	) ORDER BY pg.PipelineGroupID ASC;
+
 		WITH pg AS 
 	(
 		SELECT CONVERT(VARCHAR(50), TRIM(value)) AS PackageGroup 
@@ -151,65 +209,7 @@ BEGIN
 		 OR @PackageGroup = 'ALL')
 	AND (p.PipelineID = @PipelineID OR @PipelineID = '-1')
 	ORDER BY p.PipelineID ASC;
-	WITH RelevantPackages AS 
-	(
 
-		SELECT TRIM(value) AS PackageGroup 
-		FROM string_split(@PackageGroup, ',') 
-		WHERE value <> 'ALL'
-    
-		UNION ALL
-    
-		SELECT PackageGroup 
-		FROM config.PackageGroups 
-		WHERE @PackageGroup = 'ALL' and @PipelineID = -1
-		)
-
-		SELECT 
-			pgl.PackageGroup, 
-			pgl.ChildPackageGroup
-		FROM 
-			config.PackageGroupLinks pgl
-		WHERE 
-			pgl.PackageGroup IN (SELECT PackageGroup FROM RelevantPackages)
-		ORDER BY 
-			pgl.PackageGroup, 
-			pgl.ChildPackageGroup;
-		WITH pg AS 
-		(
-			SELECT CONVERT(VARCHAR(50), TRIM(value)) AS PackageGroup 
-			FROM string_split (@PackageGroup, ',') 
-			WHERE value <> 'ALL'
-		
-			UNION ALL
-		
-			SELECT PackageGroup 
-			FROM config.PackageGroups pg 
-			WHERE @PackageGroup = 'ALL' and @PipelineID = -1
-		
-			UNION 
-		
-			SELECT pgl.ChildPackageGroup AS PackageGroup 
-			FROM string_split(@PackageGroup, ',') pg2 
-			INNER JOIN config.PackageGroupLinks pgl ON pgl.PackageGroup = TRIM(pg2.value)
-		
-			UNION 
-		
-			SELECT pgl2.ChildPackageGroup AS PackageGroup 
-			FROM string_split(@PackageGroup, ',') pg2 
-			INNER JOIN config.PackageGroupLinks pgl ON pgl.PackageGroup = TRIM(pg2.value)
-			INNER JOIN config.PackageGroupLinks pgl2 ON pgl2.PackageGroup = pgl.ChildPackageGroup
-		)
-		SELECT 
-			pg.PackageGroup, 
-			pg.Monitored, 
-			pg.SortOrder
-		FROM 
-			config.PackageGroups pg
-		WHERE 
-			pg.PackageGroup IN (SELECT PackageGroup FROM pg) -- Check if the PackageGroup matches
-		ORDER BY 
-			pg.PackageGroup;
 
 END
 
