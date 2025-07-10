@@ -14,17 +14,17 @@
               "type": "Copy",
               "typeProperties": {
                 "source": {
-                  "type": "DelimitedTextSource",
-                  "formatSettings": {
-                    "type": "DelimitedTextReadSettings"
-                  },
+                  "type": "ParquetSource",
                   "storeSettings": {
                     "type": "LakehouseReadSettings",
                     "recursive": true,
                     "enablePartitionDiscovery": false
                   },
+                  "formatSettings": {
+                    "type": "ParquetReadSettings"
+                  },
                   "datasetSettings": {
-                    "type": "DelimitedText",
+                    "type": "Parquet",
                     "typeProperties": {
                       "location": {
                         "type": "LakehouseLocation",
@@ -37,19 +37,16 @@
                           "type": "Expression"
                         }
                       },
-                      "columnDelimiter": ",",
-                      "quoteChar": "\"",
-                      "escapeChar": "\\",
-                      "firstRowAsHeader": true
+                      "compressionCodec": "snappy"
                     },
                     "schema": [],
                     "linkedService": {
-                      "name": "LH",
+                      "name": "45490509_ea73_424f_887b_616c34852c00",
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
-                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.LakehouseID",
+                          "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID",
                           "rootFolder": "Files"
                         },
                         "annotations": []
@@ -59,11 +56,11 @@
                   }
                 },
                 "sink": {
-                  "type": "FabricSqlDatabaseSink",
-                  "sqlWriterUseTableLock": false,
-                  "writeBehavior": "insert",
+                  "type": "LakehouseTableSink",
+                  "tableActionOption": "Append",
+                  "partitionOption": "None",
                   "datasetSettings": {
-                    "type": "FabricSqlDatabaseTable",
+                    "type": "LakehouseTable",
                     "typeProperties": {
                       "schema": "config",
                       "table": {
@@ -72,16 +69,14 @@
                       }
                     },
                     "schema": [],
-                    "connectionSettings": {
-                      "name": "Meta",
+                    "linkedService": {
+                      "name": "LH",
                       "properties": {
-                        "type": "FabricSqlDatabase",
+                        "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "fe70c606-af27-4f64-973a-2be877526212",
-                          "workspaceId": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
-                        },
-                        "externalReferences": {
-                          "connection": "56f1cda4-3b81-4526-aee4-31c10fc04d19"
+                          "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Tables"
                         },
                         "annotations": []
                       }
@@ -218,7 +213,7 @@
     "parameters": {
       "Date": {
         "type": "string",
-        "defaultValue": "20250415"
+        "defaultValue": "20250709"
       }
     }
   }
