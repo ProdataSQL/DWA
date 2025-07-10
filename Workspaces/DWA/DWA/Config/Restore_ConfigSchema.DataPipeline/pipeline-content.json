@@ -56,27 +56,27 @@
                   }
                 },
                 "sink": {
-                  "type": "LakehouseTableSink",
-                  "tableActionOption": "Append",
-                  "partitionOption": "None",
+                  "type": "DataWarehouseSink",
+                  "allowCopyCommand": true,
+                  "copyCommandSettings": {},
                   "datasetSettings": {
-                    "type": "LakehouseTable",
+                    "type": "DataWarehouseTable",
                     "typeProperties": {
                       "schema": "config",
                       "table": {
-                        "value": "@item().Name",
+                        "value": "@@item().Name",
                         "type": "Expression"
                       }
                     },
                     "schema": [],
                     "linkedService": {
-                      "name": "LH",
+                      "name": "7bb2ce60_67c4_4088_8011_037f3909798c",
                       "properties": {
-                        "type": "Lakehouse",
+                        "type": "DataWarehouse",
                         "typeProperties": {
-                          "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
-                          "workspaceId": "00000000-0000-0000-0000-000000000000",
-                          "rootFolder": "Tables"
+                          "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
+                          "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
+                          "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
                         },
                         "annotations": []
                       }
@@ -92,7 +92,7 @@
                     "treatBooleanAsNumber": false
                   }
                 },
-                "enableStaging": false
+                "enableStaging": true
               },
               "policy": {
                 "timeout": "0.12:00:00",
@@ -213,7 +213,7 @@
     "parameters": {
       "Date": {
         "type": "string",
-        "defaultValue": "20250709"
+        "defaultValue": "20250708"
       }
     }
   }
