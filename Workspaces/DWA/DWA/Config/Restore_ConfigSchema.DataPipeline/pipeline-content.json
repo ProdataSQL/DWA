@@ -56,11 +56,11 @@
                   }
                 },
                 "sink": {
-                  "type": "LakehouseTableSink",
-                  "tableActionOption": "OverwriteSchema",
-                  "partitionOption": "None",
+                  "type": "FabricSqlDatabaseSink",
+                  "sqlWriterUseTableLock": false,
+                  "writeBehavior": "insert",
                   "datasetSettings": {
-                    "type": "LakehouseTable",
+                    "type": "FabricSqlDatabaseTable",
                     "typeProperties": {
                       "schema": "config",
                       "table": {
@@ -69,14 +69,16 @@
                       }
                     },
                     "schema": [],
-                    "linkedService": {
-                      "name": "LH",
+                    "connectionSettings": {
+                      "name": "Meta",
                       "properties": {
-                        "type": "Lakehouse",
+                        "type": "FabricSqlDatabase",
                         "typeProperties": {
-                          "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
-                          "workspaceId": "00000000-0000-0000-0000-000000000000",
-                          "rootFolder": "Tables"
+                          "artifactId": "77526212-2be8-973a-4f64-af27fe70c606",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000"
+                        },
+                        "externalReferences": {
+                          "connection": "02ab8ca6-5283-4bd7-a26b-f946b3c9c2cc"
                         },
                         "annotations": []
                       }
@@ -164,7 +166,6 @@
           "secureInput": false
         },
         "name": "Get Env Variables",
-        "description": ".",
         "dependsOn": []
       },
       {
@@ -214,7 +215,7 @@
     "parameters": {
       "Date": {
         "type": "string",
-        "defaultValue": "20250708"
+        "defaultValue": "20250709"
       }
     }
   }
