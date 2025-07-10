@@ -56,27 +56,27 @@
                   }
                 },
                 "sink": {
-                  "type": "DataWarehouseSink",
-                  "allowCopyCommand": true,
-                  "copyCommandSettings": {},
+                  "type": "LakehouseTableSink",
+                  "tableActionOption": "OverwriteSchema",
+                  "partitionOption": "None",
                   "datasetSettings": {
-                    "type": "DataWarehouseTable",
+                    "type": "LakehouseTable",
                     "typeProperties": {
                       "schema": "config",
                       "table": {
-                        "value": "@@item().Name",
+                        "value": "@item().Name",
                         "type": "Expression"
                       }
                     },
                     "schema": [],
                     "linkedService": {
-                      "name": "7bb2ce60_67c4_4088_8011_037f3909798c",
+                      "name": "LH",
                       "properties": {
-                        "type": "DataWarehouse",
+                        "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-                          "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-                          "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+                          "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
+                          "workspaceId": "00000000-0000-0000-0000-000000000000",
+                          "rootFolder": "Tables"
                         },
                         "annotations": []
                       }
@@ -92,7 +92,7 @@
                     "treatBooleanAsNumber": false
                   }
                 },
-                "enableStaging": true
+                "enableStaging": false
               },
               "policy": {
                 "timeout": "0.12:00:00",
