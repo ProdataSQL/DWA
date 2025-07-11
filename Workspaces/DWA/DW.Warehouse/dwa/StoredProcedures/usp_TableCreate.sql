@@ -4,7 +4,7 @@ Example:
 		[dwa].[usp_TableCreate]  1	/* Dim  */
 		[dwa].[usp_TableCreate] 7 /* Fact */
 History:
-		20/02/2025 Created
+		13/01/2021 Bob, Created
 */
 CREATE   PROC [dwa].[usp_TableCreate] @TableID [int],@TargetObject [varchar](512) =NULL AS
 BEGIN	

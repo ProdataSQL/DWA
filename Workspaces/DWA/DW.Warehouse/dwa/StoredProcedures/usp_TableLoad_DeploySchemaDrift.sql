@@ -1,12 +1,10 @@
 /*
 Description:	DeploySchemaDrift for Table Load framework - Execute main usp_TableLoad proc
-Example:  EXEC dwa.[usp_TableLoad_DeploySchemaDrift] 4
-History:	20/02/2025 Created		
+Example:  EXEC dwa.[usp_TableLoad_DeploySchemaDrift] 2
+History:	25/08/2022 Deepak, Created		
 */
-CREATE PROC [dwa].[usp_TableLoad_DeploySchemaDrift] @TableID [int] AS
+CREATE   PROC [dwa].[usp_TableLoad_DeploySchemaDrift] @TableID [int] AS
 BEGIN
-	--SET XACT_ABORT ON 	
-	BEGIN 
 	SET NOCOUNT ON
 	DECLARE @sql nvarchar(max)	      	  
 		  , @SourceObject varchar(128)
@@ -15,6 +13,8 @@ BEGIN
 		  , @SelectColumns [nvarchar](max)
 		  , @AddColumns [nvarchar](max)
 		  , @RowChecksum [nvarchar](max)
+
+	raiserror ('Error in usp_TableLoad_DeploySchemaDrift. Not supported yet. Turn off SchemaDrift',16,1)
 
 	SELECT @SourceObject =t.SourceObject 
 	, @TargetObject = t.SchemaName + '.' +  t.TableName
@@ -66,6 +66,5 @@ BEGIN
 			EXEC (@SQL)
 			IF OBJECT_ID(@TempTable) IS NOT NULL
 				EXEC [dwa].[usp_TableDrop] @Table=@TempTable
-			END
-	END
+		END
 END

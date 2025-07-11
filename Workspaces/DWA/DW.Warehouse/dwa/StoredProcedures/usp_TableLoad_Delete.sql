@@ -2,7 +2,7 @@
 Description:	DELETE Operation for Table Load framework - Execute main usp_TableLoad proc	
 Example: exec dwa.[usp_TableLoad] 'aw.FactFinance',NULL
 		 exec dwa.[usp_TableLoad] NULL, 7 
-History:	20/02/2025  Created		
+History:	26/08/2022 Deepak, Created		
 */
 CREATE   PROC [dwa].[usp_TableLoad_Delete] @TableID int,@SelectColumns nvarchar(max),@JoinSQL nvarchar(max) AS
 BEGIN

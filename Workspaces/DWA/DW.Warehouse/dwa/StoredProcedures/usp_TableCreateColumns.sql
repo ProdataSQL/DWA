@@ -1,7 +1,7 @@
 /* Description: Return the Column Meta Data DDL for a CREATE TABLE, CTAS, Polybase or other method in SQLDB or SQLDW 
 Example:
 		DECLARE  @Columns nvarchar(max)
-		exec [dwa].[usp_TableCreateColumns]  1, @Columns output	/* Dim  */
+		exec [dwa].[usp_TableCreateColumns]  2, @Columns output	/* Dim  */
 		PRINT @Columns
 
 		DECLARE  @Columns nvarchar(max)
@@ -12,7 +12,7 @@ Example:
 		exec [dwa].[usp_TableCreateColumns]  4,@Columns output  /* Dim */
 		PRINT @Columns
 History:
-		20/02/2025  Created
+		02/08/2023 Deepak, Created
 */
 CREATE   PROC [dwa].[usp_TableCreateColumns] @TableID [int],@Columns [varchar](4000) OUT AS
 BEGIN
@@ -27,12 +27,12 @@ BEGIN
 		, @PrimaryKey  sysname
 		, @TableType sysname
 		, @ColumnsPK nvarchar(4000)
-		, @DeDupeRows int             /* Flag to check if DeDupeRows is ON for TableID */
+		, @DeDupeFlag bit             /* Flag to check if DeDupeRows is ON for TableID */
         , @HideColumns nvarchar(4000) /* Array of Columns to Hide */
 		, @PKs VARCHAR(400)
 		, @BaseDims VARCHAR(400)
 
-	SELECT @SourceObject =SourceObject, @BusinessKeys=BusinessKeys, @TableType=TableType, @PrimaryKey=PrimaryKey,@DeDupeRows = DedupeRows
+	SELECT @SourceObject =SourceObject, @BusinessKeys=BusinessKeys, @TableType=TableType, @PrimaryKey=PrimaryKey,@DeDupeFlag = DedupeFlag
 	FROM Meta.config.edwTables 
 	WHERE TableID=@TableID
 	
@@ -41,7 +41,7 @@ BEGIN
 	INNER JOIN Meta.config.edwTables r on j.RelatedTableID =r.TableID
 	WHERE j.TableID=@TableID
 
-	IF @DeDupeRows=1
+	IF @DeDupeFlag=1
        SET @HideColumns =coalesce(@HideColumns + ',','')  + 'RowVersionNo';
 
 	/* Primary Keys (if any) from joined table if Fact or Star Schema) */

@@ -1,7 +1,7 @@
 /*	Drop a Star Schema Table
 	Example:[dwa].[usp_TableDrop] 'aw.DimDate'
 	History:
-			20/02/2025 Created
+			18/08/2023 Deepak, Created
 */
 CREATE PROCEDURE [dwa].[usp_TableDrop] @Table [sysname]
 AS

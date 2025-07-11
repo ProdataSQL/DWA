@@ -1,4 +1,5 @@
--- Auto Generated (Do not modify) 925D9AB2CBA6485252A18B3F4C1BB565C8F2801B74682136EEF22174EF5C9E9E
+-- Auto Generated (Do not modify) EA147841DFF905BE86CB6B0C0B5CB27470E39EDC45FE607472A2CF6C94BD31EE
+
 
 
 /* Description: AW Dim Account
@@ -17,7 +18,6 @@ SELECT  CONVERT(VARCHAR(16),HASHBYTES('MD5', CONVERT(VARCHAR(4),a.AccountCode)),
 	, CONVERT(VARCHAR(50), a.CustomMembers COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS CustomMembers
 	, ISNULL(CONVERT(VARCHAR(50), a.ValueType COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8), '') AS ValueType
 	, CONVERT(VARCHAR(200), a.CustomMemberOptions COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS CustomMemberOptions
-	, ISNULL(Checksum(*), 0) AS RowChecksum
 	, CONVERT(VARCHAR(512), a.[FileName] COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8) AS FileName
 	,ISNULL(CONVERT(VARCHAR(36),LineageKey COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8),0) AS LineageKey
 FROM LH.aw_stg.[account] a

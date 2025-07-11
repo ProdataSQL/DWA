@@ -2,35 +2,20 @@
 Description:	CTAS Operation for Table Load framework - Execute main usp_TableLoad proc
 Example: exec dwa.[usp_TableLoad] 'aw.FactFinance',NULL
 		 exec dwa.[usp_TableLoad] NULL, 7 
-History:	20/02/2025 Created		
+History:	25/08/2022 Deepak, Created	
+			17/03/2025 Bob, Tuning
 */
-CREATE PROC [dwa].[usp_TableLoad_CTAS] @TableID [int],@TargetObject [sysname],@SourceObject [sysname],@SelectColumns [nvarchar](max),@JoinSQL [nvarchar](max),@SqlWhere [nvarchar](max),@PrestageJoinSQL [nvarchar](max),@DeltaJoinSql [nvarchar](max),@RelatedBusinessKeys [nvarchar](max) AS
+CREATE   PROC [dwa].[usp_TableLoad_CTAS] @TableID [int],@TargetObject [sysname],@SourceObject [sysname],@SelectColumns [nvarchar](max),@JoinSQL [nvarchar](max),@SqlWhere [nvarchar](max),@PrestageJoinSQL [nvarchar](max),@DeltaJoinSql [nvarchar](max),@RelatedBusinessKeys [nvarchar](max), @SqlWhereOuter varchar(4000), @InsertColumns varchar(4000), @TablePrefix nvarchar(128), @PrestageTargetFlag bit,@DeleteDDL varchar(4000),@RowChecksum bit  AS
 BEGIN
-	--SET XACT_ABORT ON 
-	
-	BEGIN 
 	SET NOCOUNT ON
-	DECLARE @sql nvarchar(max)	      
-		  , @TablePrefix nvarchar(max)		  
-		  , @PrestageTargetFlag bit
-		  , @CTAS bit				/* 1 if CTAS statement required */
-		  , @DeleteDDL nvarchar(4000)
-
-	SELECT @TablePrefix= coalesce(t.TablePrefix, lower(left(replace(t.TableName, 'Dim',''),1)))
-	, @PrestageTargetFlag = coalesce(t.PrestageTargetFlag,0)
-	, @DeleteDDL=t.DeleteDDL
-	FROM Meta.config.edwTables t 
-	WHERE t.TableID = @TableID	
+	DECLARE @sql nvarchar(max)	  
 	
-    IF @TargetObject IS NULL
-	BEGIN
-		RAISERROR ('No Rule found in edwTables for %s', 16, 1, @SourceObject)
-	END
-
-	SET @sql = 'CREATE TABLE ' + @TargetObject + CHAR(13) + 'AS' + CHAR(13)
+	SET @sql = 'DROP TABLE IF EXISTS ' + @TargetObject + ';' + CHAR(13)
+	SET @sql = @Sql + 'CREATE TABLE ' + @TargetObject + CHAR(13) + 'AS' + CHAR(13)
+	if len(@SqlWhereOuter) > 0 SET @sql =@sql +  'SELECT ' + @InsertColumns + ' FROM ' + CHAR(13) + '(' + CHAR(13) 
 	SET @sql = @sql + 'SELECT ' + @SelectColumns + CHAR(13)
 	SET @sql = @sql + 'FROM ' + @SourceObject + ' ' + @TablePrefix
-
+	
 	IF coalesce(@RelatedBusinessKeys, '') > ''
 	BEGIN
 		SET @sql = @sql + coalesce(CHAR(13) + @JoinSQL, '')
@@ -48,9 +33,10 @@ BEGIN
 	IF @sqlWhere IS NOT NULL
 		SET @sql = @sql + CHAR(13) + @sqlWhere;
 
+	IF LEN(@SqlWhereOuter ) > 0 SET @sql = @sql + CHAR(13) + ') f' + CHAR(13) + 'WHERE ' + @SqlWhereOuter
+
 	SET @sql=@sql + ';' + char(13)
 	PRINT @sql
 	EXEC (@sql)	
 
-	END
 END
