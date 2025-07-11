@@ -9,18 +9,3 @@ CREATE TABLE [dbo].[dict_artefacts] (
 
 GO
 
-
-
-
-CREATE   TRIGGER [TR_dict_artefacts]
-   ON  [dbo].[dict_artefacts]
-   AFTER INSERT,DELETE,UPDATE
-AS 
-BEGIN
-	SET NOCOUNT ON;
-	exec  [config].[usp_PipelineBuildMetaData]
-
-END
-
-GO
-

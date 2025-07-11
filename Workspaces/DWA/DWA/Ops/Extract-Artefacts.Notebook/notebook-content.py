@@ -104,8 +104,10 @@ spark.createDataFrame(df).write.mode("overwrite").saveAsTable("dict_artefacts")
 # CELL ********************
 
 #Write Back to Meta SqlDatabase (used for DWA Engine)
-with engine.connect() as alchemy_connection:
-    df.to_sql('dict_artefacts', con=engine, if_exists='replace', index=False)
+from sqlalchemy import text
+with engine.begin() as alchemy_connection:
+    df.to_sql('dict_artefacts', con=engine, if_exists='replace', index=False,method='multi', chunksize=1000)
+    alchemy_connection.execute(text("EXEC [config].[usp_PipelineBuildMetaData]"))
 
 # METADATA ********************
 
