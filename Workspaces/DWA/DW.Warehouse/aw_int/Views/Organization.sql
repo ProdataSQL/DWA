@@ -1,4 +1,5 @@
--- Auto Generated (Do not modify) 2A5E25A19763887A0FFAD560D107C3D15FE15DA8D97E4BBAD661C8E71E6535E2
+-- Auto Generated (Do not modify) F2AC694AB10BC94E381E64BD97B30BD1A7468C0D8998436EF1A14C54FD7457E9
+
 
 /* Description: AW Dimension Organization
    Example: EXEC dwa.usp_TableLoad NULL,5,NULL
@@ -11,7 +12,6 @@ SELECT ISNULL(CONVERT(VARCHAR(16),HASHBYTES('MD5', p.OrganizationName),2),'') AS
 	, ISNULL(CONVERT(VARCHAR(10), PercentageOfOwnership), 0) AS PercentageOfOwnership
 	, ISNULL(CONVERT(VARCHAR(50), p.OrganizationName), '') AS OrganizationName
 	, ISNULL(CONVERT(VARCHAR(16), cu.CurrencyKey), 0) AS CurrencyKey
-	, ISNULL(CONVERT(bigint,BINARY_CHECKSUM(ParentOrganizationKey,p.OrganizationName, p.OrganizationName)),0) AS RowChecksum
 	, CONVERT(VARCHAR(512), p.[FileName]) AS FileName
 	,ISNULL(CONVERT(VARCHAR(36),p.LineageKey),0)  AS  LineageKey
 FROM LH.aw_stg.organization p
