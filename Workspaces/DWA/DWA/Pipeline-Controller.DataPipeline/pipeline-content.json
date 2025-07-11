@@ -98,36 +98,21 @@
                 },
                 "ifTrueActivities": [
                   {
-                    "type": "InvokePipeline",
+                    "type": "ExecutePipeline",
                     "typeProperties": {
-                      "parameters": {
-                        "PackageGroup": {
-                          "value": "@pipeline().parameters.PackageGroup",
-                          "type": "Expression"
-                        },
-                        "PipelineID": {
-                          "value": "@pipeline().parameters.PipelineID",
-                          "type": "Expression"
-                        },
-                        "PipelineSequence": {
-                          "value": "@item().PipelineSequence",
-                          "type": "Expression"
-                        }
+                      "pipeline": {
+                        "referenceName": "962001bc-df81-af26-42a2-1f599ef1dad6",
+                        "type": "PipelineReference"
                       },
-                      "waitOnCompletion": true,
-                      "workspaceId": "00000000-0000-0000-0000-000000000000",
-                      "pipelineId": "962001bc-df81-af26-42a2-1f599ef1dad6",
-                      "operationType": "InvokeFabricPipeline"
-                    },
-                    "externalReferences": {
-                      "connection": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+                      "parameters": {
+                        "PackageGroup": "@pipeline().parameters.PackageGroup",
+                        "PipelineID": "@pipeline().parameters.PipelineID",
+                        "PipelineSequence": "@item().PipelineSequence"
+                      },
+                      "waitOnCompletion": true
                     },
                     "policy": {
-                      "timeout": "0.12:00:00",
-                      "retry": 0,
-                      "retryIntervalInSeconds": 30,
-                      "secureInput": false,
-                      "secureOutput": false
+                      "secureInput": false
                     },
                     "name": "Pipeline-Worker",
                     "dependsOn": []
@@ -203,11 +188,11 @@
       },
       "Stage": {
         "type": "string",
-        "defaultValue": "Ingest"
+        "defaultValue": "ALL"
       },
       "PipelineID": {
         "type": "string",
-        "defaultValue": "1"
+        "defaultValue": "-1"
       }
     },
     "variables": {
