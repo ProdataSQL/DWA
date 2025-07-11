@@ -1078,21 +1078,6 @@
                 "value": "Automatic"
               }
             ]
-          },
-          {
-            "name": "RowChecksum",
-            "dataType": "int64",
-            "sourceColumn": "RowChecksum",
-            "formatString": "0",
-            "sourceProviderType": "bigint",
-            "sourceLineageTag": "RowChecksum",
-            "summarizeBy": "sum",
-            "annotations": [
-              {
-                "name": "SummarizationSetBy",
-                "value": "Automatic"
-              }
-            ]
           }
         ],
         "partitions": [

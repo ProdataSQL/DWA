@@ -8,6 +8,5 @@ CREATE TABLE [aw].[FactFinance] (
 	[Date] varchar(8000) NULL, 
 	[Amount] decimal(38,6) NULL, 
 	[FileName] varchar(512) NULL, 
-	[LineageKey] varchar(36) NOT NULL, 
-	[RowChecksum] bigint NOT NULL
+	[LineageKey] varchar(36) NOT NULL
 );
