@@ -1,6 +1,3 @@
-
-
-
 /*
 Description: Build PipelineMeta table 
 Example:		
@@ -21,6 +18,9 @@ BEGIN
 	DECLARE @Finished		bit=0
 			,@OldPipelineID INT=0
 			,@SinglePipeline bit=0
+
+	if not exists (select * from config.Pipelines ) 
+		return
 
 	IF @PipelineID is not null
 		BEGIN
