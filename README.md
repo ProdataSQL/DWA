@@ -35,6 +35,8 @@ https://prodata.ie/fabric-poc/
 [![image](https://github.com/user-attachments/assets/47026239-97f7-48a9-81b5-da2d4d070d9f)]
 (https://www.youtube.com/watch?v=Wc_JE8YsT90)
 <BR>
-Othet Videos and Tutorials are linked to on the [Tutorials](https://github.com/ProdataSQL/DWA/wiki/8.-Tutorials) sectionof the Wiki Site.
+### Other Videos and Tutorials
+[Tutorials Wiki Site](https://github.com/ProdataSQL/DWA/wiki/8.-Tutorials) 
+
 
   
