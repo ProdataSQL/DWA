@@ -22,7 +22,7 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings = '{"Directory" : "landing/AdventureWorks/erp", "File" : "*.xlsx"}'
+SourceSettings = '{"Directory" : "landing/aw", "File" : "*.xlsx"}'
 TargetSettings ='{ "SchemaName": "aw_stg","mode":"overwrite" }'
 ActivitySettings = '{"ArchiveDirectory":null,"dedupe":null,"with_checksum":false}'
 SourceConnectionSettings=None

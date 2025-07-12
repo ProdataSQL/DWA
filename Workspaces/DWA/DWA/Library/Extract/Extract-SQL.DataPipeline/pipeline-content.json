@@ -1,0 +1,205 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "Copy",
+        "typeProperties": {
+          "source": {
+            "type": "SqlServerSource",
+            "partitionOption": "None",
+            "queryTimeout": "02:00:00",
+            "additionalColumns": [
+              {
+                "name": "LineageKey",
+                "value": {
+                  "value": "@pipeline().parameters.LineageKey",
+                  "type": "Expression"
+                }
+              }
+            ],
+            "datasetSettings": {
+              "type": "SqlServerTable",
+              "typeProperties": {
+                "schema": {
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).Schema",
+                  "type": "Expression"
+                },
+                "table": {
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).SourceObject",
+                  "type": "Expression"
+                },
+                "database": {
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+                  "type": "Expression"
+                }
+              },
+              "schema": [],
+              "externalReferences": {
+                "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID"
+              },
+              "annotations": []
+            }
+          },
+          "sink": {
+            "type": "LakehouseTableSink",
+            "tableActionOption": "OverwriteSchema",
+            "partitionOption": "None",
+            "datasetSettings": {
+              "type": "LakehouseTable",
+              "typeProperties": {
+                "schema": {
+                  "value": "@json(string(pipeline().parameters.TargetSettings)).Schema",
+                  "type": "Expression"
+                },
+                "table": {
+                  "value": "@json(string(pipeline().parameters.TargetSettings)).Table\n",
+                  "type": "Expression"
+                }
+              },
+              "schema": [],
+              "linkedService": {
+                "name": "75d4ebf8_bfa8_472b_8c5d_36bcb00f3e23",
+                "properties": {
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).LakehouseID",
+                    "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).WorkspaceID",
+                    "rootFolder": "Tables"
+                  },
+                  "annotations": []
+                }
+              },
+              "annotations": []
+            }
+          },
+          "translator": {
+            "type": "TabularTranslator",
+            "typeConversion": true,
+            "typeConversionSettings": {
+              "allowDataTruncation": true,
+              "treatBooleanAsNumber": false
+            }
+          },
+          "enableStaging": false
+        },
+        "policy": {
+          "timeout": "0.00:30:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "Copy-SQL",
+        "dependsOn": []
+      },
+      {
+        "type": "SqlServerStoredProcedure",
+        "typeProperties": {
+          "database": "Meta-4adf8914-0560-45ec-a3c3-597b6b5c9294",
+          "storedProcedureName": "[audit].[usp_PipelineLogCopy]",
+          "storedProcedureParameters": {
+            "Json": {
+              "value": {
+                "value": "@string(activity('Copy-SQL').output)",
+                "type": "Expression"
+              },
+              "type": "String"
+            },
+            "LineageKey": {
+              "value": {
+                "value": "@pipeline().parameters.LineageKey",
+                "type": "Expression"
+              },
+              "type": "Guid"
+            }
+          }
+        },
+        "connectionSettings": {
+          "name": "Meta",
+          "properties": {
+            "type": "FabricSqlDatabase",
+            "typeProperties": {
+              "artifactId": "77526212-2be8-973a-4f64-af27fe70c606",
+              "workspaceId": "00000000-0000-0000-0000-000000000000"
+            },
+            "externalReferences": {
+              "connection": "935d976f-470e-42dc-9ee1-97ef97a281a4"
+            },
+            "annotations": []
+          }
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "usp_PipelineLogCopy",
+        "dependsOn": [
+          {
+            "activity": "Copy-SQL",
+            "dependencyConditions": [
+              "Completed"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Fail",
+        "typeProperties": {
+          "message": {
+            "value": "Error Check SELECT * FROM audit.Pipelinelogs WHERE LineageKey='@{pipeline().parameters.LineageKey}'",
+            "type": "Expression"
+          },
+          "errorCode": "0001"
+        },
+        "name": "Fail1",
+        "dependsOn": [
+          {
+            "activity": "Copy-SQL",
+            "dependencyConditions": [
+              "Failed"
+            ]
+          }
+        ]
+      }
+    ],
+    "parameters": {
+      "SourceSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Database": "AdventureworksLT",
+          "SourceObject": "Product",
+          "Schema": "SalesLT"
+        }
+      },
+      "TargetSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Table": "Product",
+          "Schema": "saleslt"
+        }
+      },
+      "SourceConnectionSettings": {
+        "type": "string",
+        "defaultValue": {
+          "ConnectionID": "d5909f9f-7ce7-4aca-8da2-ba8bfb057610"
+        }
+      },
+      "TargetConnectionSettings": {
+        "type": "string",
+        "defaultValue": {
+          "LakehouseID": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+          "WorkspaceID": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
+        }
+      },
+      "ActivitySettings": {
+        "type": "string"
+      },
+      "LineageKey": {
+        "type": "string"
+      }
+    }
+  }
+}

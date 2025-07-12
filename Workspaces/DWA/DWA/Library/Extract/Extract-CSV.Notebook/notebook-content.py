@@ -8,12 +8,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
-# META       "default_lakehouse_name": "FabricLH",
-# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
+# META       "default_lakehouse_name": "LH",
+# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
+# META           "id": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
 # META         }
 # META       ]
 # META     }
@@ -28,9 +28,9 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings = '{"Directory": "unittest/AdventureWorks/erp", "File": "*.csv"}' # "condition" : "target.RowChecksum = source.RowChecksum","mode":"merge"
+SourceSettings = '{"Directory": "landing/aw", "File": "*.csv"}' # "condition" : "target.RowChecksum = source.RowChecksum","mode":"merge"
 # Source Setting Options https://spark.apache.org/docs/3.5.4/sql-data-sources-csv.html
-TargetSettings = '{"SchemaName":"tst", "mode":"overwrite" }'
+TargetSettings = '{"SchemaName":"aw_stg", "mode":"overwrite" }'
 SourceConnectionSettings = None
 SinkConnectionSettings = None
 # all of these are optional and set to their default

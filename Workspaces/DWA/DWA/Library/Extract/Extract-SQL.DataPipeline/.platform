@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "DataPipeline",
-    "displayName": "pipeline1"
+    "displayName": "Extract-SQL"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "fe0d31ac-b740-b22f-4e05-727981d14924"
+    "logicalId": "1ef560ab-7329-b681-413e-531d3e1cfc3c"
   }
 }
