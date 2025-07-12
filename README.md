@@ -32,8 +32,7 @@ https://prodata.ie/fabric-poc/
 [![image](https://github.com/user-attachments/assets/0cce133b-1d61-4cc0-9f58-70eac999de5b)](https://www.youtube.com/watch?v=9hkCDL8TKSQ)
 
 ### 20 Minute Demo of autimated Ingest, Extract, Transform and Load
-[![image](https://github.com/user-attachments/assets/47026239-97f7-48a9-81b5-da2d4d070d9f)]
-(https://www.youtube.com/watch?v=Wc_JE8YsT90)
+[![image](https://github.com/user-attachments/assets/47026239-97f7-48a9-81b5-da2d4d070d9f)](https://www.youtube.com/watch?v=Wc_JE8YsT90)
 <BR>
 ### Other Videos and Tutorials
 [Tutorials Wiki Site](https://github.com/ProdataSQL/DWA/wiki/8.-Tutorials) 
