@@ -36,7 +36,7 @@ TargetConnectionSettings=None
 SourceSettings='{"Drive": "AdventureWorks", "Directory" : "AW/erp", "File" : "*.xlsx" }'
 TargetSettings = '{"SchemaName":"aw_stg"}' 
 ActivitySettings=None
-LineageKey = "00000000-0000-0000-0000-000000000000"
+LineageKey = "00000000-0000-0000-0000-000000000001"
 
 
 # METADATA ********************
