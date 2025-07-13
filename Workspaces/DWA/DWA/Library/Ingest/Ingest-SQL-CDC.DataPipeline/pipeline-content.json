@@ -1,0 +1,316 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "Get Env Variables",
+        "type": "ExecutePipeline",
+        "state": "Inactive",
+        "onInactiveMarkAs": "Succeeded",
+        "dependsOn": [],
+        "policy": {
+          "secureInput": false
+        },
+        "typeProperties": {
+          "waitOnCompletion": true,
+          "parameters": {}
+        }
+      },
+      {
+        "name": "SQL - Get Max LSN",
+        "type": "Script",
+        "dependsOn": [
+          {
+            "activity": "Get Env Variables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "scripts": [
+            {
+              "type": "Query",
+              "text": {
+                "value": "SELECT\r\n    convert(varchar,sys.fn_cdc_get_max_lsn(),1) AS max_lsn,\r\n    sys.fn_cdc_map_lsn_to_time(sys.fn_cdc_get_max_lsn()) AS max_lsn_datetime",
+                "type": "Expression"
+              }
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00",
+          "database": {
+            "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+            "type": "Expression"
+          }
+        },
+        "externalReferences": {
+          "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID",
+          "connectionType": "SqlServer"
+        }
+      },
+      {
+        "name": "usp_cdcSqlBegin",
+        "description": "Start CDC and Return LSN Numbers for tables in scope",
+        "type": "Lookup",
+        "dependsOn": [
+          {
+            "activity": "SQL - Get Max LSN",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.00:30:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "source": {
+            "type": "DataWarehouseSource",
+            "sqlReaderStoredProcedureName": "[config].[usp_cdcSqlBegin]",
+            "storedProcedureParameters": {
+              "ConnectionID ": {
+                "type": "String",
+                "value": {
+                  "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID",
+                  "type": "Expression"
+                }
+              },
+              "Database": {
+                "type": "String",
+                "value": {
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+                  "type": "Expression"
+                }
+              },
+              "target_lsn": {
+                "type": "String",
+                "value": {
+                  "value": "@activity('SQL - Get max LSN').output.resultsets[0].rows[0].max_lsn",
+                  "type": "Expression"
+                }
+              },
+              "target_datetime": {
+                "type": "Datetime",
+                "value": {
+                  "value": "@activity('SQL - Get max LSN').output.resultsets[0].rows[0].max_lsn_datetime",
+                  "type": "Expression"
+                }
+              },
+              "Table": {
+                "type": "String",
+                "value": {
+                  "value": "@if(\n    contains(string(pipeline().parameters.SourceSettings), '\"Table\"'),\n    json(string(pipeline().parameters.SourceSettings)).Table,\n    null\n)",
+                  "type": "Expression"
+                }
+              }
+            },
+            "queryTimeout": "02:00:00",
+            "partitionOption": "None"
+          },
+          "firstRowOnly": false,
+          "datasetSettings": {
+            "annotations": [],
+            "linkedService": {
+              "name": "52b14798_0b9c_4626_ae6a_632f181ae204",
+              "properties": {
+                "annotations": [],
+                "type": "DataWarehouse",
+                "typeProperties": {
+                  "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
+                  "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
+                  "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+                }
+              }
+            },
+            "type": "DataWarehouseTable",
+            "schema": [],
+            "typeProperties": {
+              "schema": "dbo",
+              "table": "usp_cdcBegin"
+            }
+          }
+        }
+      },
+      {
+        "name": "ForEach-Table",
+        "description": "Loop over CDC Tables in Source",
+        "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "usp_cdcSqlBegin",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
+        "typeProperties": {
+          "items": {
+            "value": "@activity('usp_cdcSqlBegin').output.value",
+            "type": "Expression"
+          },
+          "batchCount": 8,
+          "activities": [
+            {
+              "name": "Copy SQL to Parquet",
+              "type": "Copy",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.1:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
+              "typeProperties": {
+                "source": {
+                  "type": "SqlServerSource",
+                  "additionalColumns": [
+                    {
+                      "name": "LineageKey",
+                      "value": {
+                        "value": "@pipeline().parameters.LineageKey",
+                        "type": "Expression"
+                      }
+                    }
+                  ],
+                  "sqlReaderQuery": {
+                    "value": "DECLARE @Table         varchar(255) = '@{item().Table}'\nDECLARE @capture_inst  sysname\nDECLARE @from_lsn_str varchar(22) = '@{item().from_lsn}'\nDECLARE @to_lsn_str varchar(22) = '@{item().to_lsn}'\nDECLARE @to_lsn        binary(10) \nDECLARE @from_lsn      binary(10) \nDECLARE @is_snapshot   bit\n\nIF len(@to_lsn_str) = 0 or @to_lsn_str is null \n\tSELECT @to_lsn = sys.fn_cdc_get_max_lsn(), @to_lsn_str = CONVERT(varchar, sys.fn_cdc_get_max_lsn(),1)\nELSE\n\tSET @to_lsn  = convert(binary(10),@to_lsn_str ,1)\n\nSET @from_lsn =convert(binary(10),nullif(@from_lsn_str,'') ,1)\nSELECT @capture_inst = capture_instance\nFROM cdc.change_tables\nWHERE source_object_id = OBJECT_ID(@Table)\n\nIF @capture_inst IS NULL\nBEGIN\n\tRAISERROR('CDC is not enabled for table %s', 16, 1, @Table)\n\tRETURN\nEND\n\n-- Determine if snapshot is required\nIF @from_lsn IS NULL\n\tOR NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM cdc.lsn_time_mapping\n\t\tWHERE start_lsn = @from_lsn\n\t)\n\tSET @is_snapshot = 1\nELSE\n\tSET @is_snapshot = 0\n\n-- Snapshot query\nIF @is_snapshot = 1\nBEGIN\n\tDECLARE @sql nvarchar(max) = '\n\tSELECT \n\t\tt.*\n\t,\t0 AS __rowMarker__\n\tFROM ' + @Table + ' t'\n\n\tEXEC sp_executesql @sql, N'@to_lsn binary(10)', @to_lsn\nEND\n-- CDC incremental query\nELSE\nBEGIN\n\tDECLARE @cdc_sql nvarchar(max) = '\n\tSELECT \n\t\tcdc.*\n\t,\tCASE cdc.__$operation\n\t\t\tWHEN 1 THEN 2\n\t\t\tWHEN 2 THEN 4\n\t\t\tWHEN 4 THEN 4\n\t\t\tELSE -1\n\t\tEND AS __rowMarker__\n\tFROM cdc.fn_cdc_get_net_changes_' + @capture_inst + '(' + @from_lsn_str + ',' +  @to_lsn_str + ', ''all'') AS cdc\n\tWHERE cdc.__$operation IN (1, 2, 4)'\n\n\tprint @cdc_sql\n\tEXEC sp_executesql @cdc_sql,\n\t\tN'@from_lsn binary(10), @to_lsn binary(10)',\n\t\t@from_lsn=@from_lsn, @to_lsn=@to_lsn\nEND\n\n\n",
+                    "type": "Expression"
+                  },
+                  "queryTimeout": "02:00:00",
+                  "partitionOption": "None",
+                  "datasetSettings": {
+                    "annotations": [],
+                    "type": "SqlServerTable",
+                    "schema": [],
+                    "typeProperties": {
+                      "database": {
+                        "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+                        "type": "Expression"
+                      }
+                    },
+                    "externalReferences": {
+                      "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID"
+                    }
+                  }
+                },
+                "sink": {
+                  "type": "ParquetSink",
+                  "storeSettings": {
+                    "type": "LakehouseWriteSettings",
+                    "metadata": [
+                      {
+                        "name": "LineageKey",
+                        "value": {
+                          "value": "@pipeline().parameters.LineageKey",
+                          "type": "Expression"
+                        }
+                      }
+                    ]
+                  },
+                  "formatSettings": {
+                    "type": "ParquetWriteSettings",
+                    "enableVertiParquet": false
+                  },
+                  "datasetSettings": {
+                    "annotations": [],
+                    "linkedService": {
+                      "name": "32842961_bfe4_40f3_854d_3095915c4cd5",
+                      "properties": {
+                        "annotations": [],
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).WorkspaceID",
+                          "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).LakehouseID",
+                          "rootFolder": "Files"
+                        }
+                      }
+                    },
+                    "type": "Parquet",
+                    "typeProperties": {
+                      "location": {
+                        "type": "LakehouseLocation",
+                        "fileName": {
+                          "value": "@concat(item().Table, '_', formatDateTime(utcNow(), 'yyyyMMddHHmmss'),'.parquet')",
+                          "type": "Expression"
+                        },
+                        "folderPath": {
+                          "value": "@concat('LandingZone/',item().Table)",
+                          "type": "Expression"
+                        }
+                      },
+                      "compressionCodec": "snappy"
+                    },
+                    "schema": []
+                  }
+                },
+                "enableStaging": false,
+                "translator": {
+                  "type": "TabularTranslator",
+                  "typeConversion": true,
+                  "typeConversionSettings": {
+                    "allowDataTruncation": true,
+                    "treatBooleanAsNumber": false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "parameters": {
+      "SourceSettings": {
+        "type": "string",
+        "defaultValue": {
+          "Database": "HICPStoreOne"
+        }
+      },
+      "TargetSettings": {
+        "type": "string",
+        "defaultValue": {}
+      },
+      "SourceConnectionSettings": {
+        "type": "string",
+        "defaultValue": {
+          "ConnectionID": "8a10eff2-cdcc-4b00-a2ef-35bae56d7ef2"
+        }
+      },
+      "TargetConnectionSettings": {
+        "type": "string",
+        "defaultValue": {
+          "LakehouseName": "StageDM2",
+          "LakehouseID": "f17dda73-7365-4c4d-a81b-33a0eb3507b5",
+          "WorkspaceID": "c1a5a7e8-c891-4a83-900f-d3297bec0a53"
+        }
+      },
+      "ActivitySettings": {
+        "type": "string",
+        "defaultValue": "SQLCDC"
+      },
+      "LineageKey": {
+        "type": "string"
+      }
+    },
+    "variables": {
+      "from_lsn": {
+        "type": "String",
+        "defaultValue": "0x0005DEC8001CB2050008"
+      },
+      "to_lsn": {
+        "type": "String",
+        "defaultValue": "0x0005E0B70000016E0001"
+      }
+    }
+  }
+}

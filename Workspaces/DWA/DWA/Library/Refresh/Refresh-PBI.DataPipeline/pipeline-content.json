@@ -1,0 +1,53 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "name": "Semantic model refresh",
+        "type": "PBISemanticModelRefresh",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "method": "post",
+          "waitOnCompletion": true,
+          "commitMode": "Transactional",
+          "operationType": "SemanticModelRefresh",
+          "datasetId": "@json(string(pipeline().parameters.SourceConnectionSettings)).DatasetID",
+          "groupId": "@json(string(pipeline().parameters.SourceConnectionSettings)).WorkspaceID"
+        },
+        "externalReferences": {
+          "connection": "25dc7bd7-61f3-4683-adf1-9c6141e45385"
+        }
+      }
+    ],
+    "parameters": {
+      "SourceConnectionSettings": {
+        "type": "string",
+        "defaultValue": {
+          "WorkspaceID": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+          "DatasetID": "b385ab81-ec52-44da-911a-a09e07f4e56f"
+        }
+      },
+      "SourceSettings": {
+        "type": "string"
+      },
+      "LineageKey": {
+        "type": "string"
+      },
+      "TargetSettings": {
+        "type": "string"
+      },
+      "TargetConnectionSettings": {
+        "type": "string"
+      },
+      "ActivitySettings": {
+        "type": "string"
+      }
+    }
+  }
+}

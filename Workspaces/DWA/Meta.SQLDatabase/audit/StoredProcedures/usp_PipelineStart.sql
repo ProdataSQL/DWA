@@ -2,6 +2,7 @@
 
 
 
+
 /*
 Description:	Start a Pipeline AND return all Meta Data (complex)
 Used By:		ADF Pipeline-Worker 
@@ -39,9 +40,6 @@ BEGIN
 			,@Stage						varchar(50)
 			,@PipelineSequence			int
 			,@MonitoringUrl				varchar(512)
-			,@RetryCount				int = 0
-	        ,@MaxRetryCount			    int = 3
-			,@Success					BIT = 0
 			,@TableID					int = null
 
 
@@ -59,75 +57,47 @@ BEGIN
 	,@TableID = TableID
 	FROM [config].[PipelineMeta]
 	WHERE PipelineID=@PipelineID
-	WHILE @Success = 0
-	BEGIN
-		BEGIN TRY 			
-			INSERT INTO [audit].[PipelineLog]	(
-				 [LineageKey]
-				, [RunID]
-				, [ParentRunID]
-				, [PipelineID]
-				, WorkspaceID
-				, [PackageGroup]
-				, [Stage]
-				, [StartDate]
-				, [StartDateTime]
-				, [Status]
-				, PipelineSequence
-				, [Template]
-				, Pipeline
-				, PipelineName
-				, MonitoringUrl
-				)
 
-			VALUES (@LineageKey
-				  ,@RunID 
-				  ,@ParentRunID 
-				  ,@PipelineID 
-				  ,@WorkspaceID
-				  ,@PackageGroup
-				  ,@Stage 
-				  ,CONVERT(DATE, @StartDateTime)
-				  ,@StartDateTime
-				  ,'Started'
-				  ,@PipelineSequence 
-				  ,@Template 
-				  ,@Pipeline
-				  ,@PipelineName
-				  ,@MonitoringUrl)
-			 SET @Success = 1
-			END TRY
-			BEGIN CATCH
-			 IF ERROR_NUMBER() IN (24556) /* Update Concurrency Error */
-				BEGIN
-					SET @RetryCount = @RetryCount + 1  
-					DECLARE @BackoffDelay varchar(12) = RIGHT('00:00:' + CAST(LEAST(30.0, 0.1 * POWER(5, @RetryCount - 1)) AS VARCHAR(10)) + '00', 12)
-					WAITFOR DELAY  @BackoffDelay
-				 END
-			  ELSE
-				THROW
-			 IF @RetryCount >@MaxRetryCount 
-				THROW
-		END CATCH 
-	END
+	INSERT INTO [audit].[PipelineLog]	(
+		[LineageKey]
+		, [RunID]
+		, [ParentRunID]
+		, [PipelineID]
+		, WorkspaceID
+		, [PackageGroup]
+		, [Stage]
+		, [StartDate]
+		, [StartDateTime]
+		, [Status]
+		, PipelineSequence
+		, [Template]
+		, Pipeline
+		, PipelineName
+		, MonitoringUrl
+		)
+
+	VALUES (@LineageKey
+			,@RunID 
+			,@ParentRunID 
+			,@PipelineID 
+			,@WorkspaceID
+			,@PackageGroup
+			,@Stage 
+			,CONVERT(DATE, @StartDateTime)
+			,@StartDateTime
+			,'Started'
+			,@PipelineSequence 
+			,@Template 
+			,@Pipeline
+			,@PipelineName
+			,@MonitoringUrl)
+	
 	IF @PreExecuteSQL IS NOT NULL 
 	BEGIN
 		PRINT ('/*Executing Pre Execute*/' + char(13) + @PreExecuteSQL)
 		EXEC( @PreExecuteSQL )
 	END	
 
-	SELECT @RunID AS RunID
-		  ,@PipelineID AS PipelineID
-		  ,@SourceConnectionSettings AS	SourceConnectionSettings
-		  ,@TargetConnectionSettings AS	TargetConnectionSettings
-		  ,@SourceSettings AS SourceSettings
-		  ,@TargetSettings AS TargetSettings
-		  ,@ActivitySettings AS	ActivitySettings
-		  ,@PreExecuteSQL AS PreExecuteSQL
-		  ,@PostExecuteSQL AS PostExecuteSQL
-		  ,@Template AS	Template
-		  ,@LineageKey AS LineageKey
-		  ,@TableID AS TableID
 END
 
 GO
