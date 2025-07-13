@@ -155,7 +155,6 @@ access_token = get_sharepoint_token(tenant_id, client_id, keyvault, client_secre
 headers = { 'Authorization': f'Bearer {access_token}' }
 site = get_sharepoint_site(sharepoint_url, site_name, headers)
 drive = get_sharepoint_drive(site["id"], source_drive_name, headers)
-
 files = get_sharepoint_files_wildcard(site['id'], drive['id'], source_directory, source_file)
 
 # METADATA ********************
