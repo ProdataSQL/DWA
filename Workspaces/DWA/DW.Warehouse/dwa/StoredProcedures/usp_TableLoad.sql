@@ -419,7 +419,10 @@ BEGIN
 		/*CTAS*/
 		IF @CTAS =1 and @Skip=0		
 		BEGIN
-			EXEC [dwa].[usp_TableLoad_CTAS] @TableID = @TableID, @TargetObject=@TargetObject,@SourceObject=@SourceObject ,@SelectColumns=@SelectColumns,@JoinSQL=@JoinSQL,@SqlWhere=@SqlWhere,@PrestageJoinSQL=@PrestageJoinSQL,@DeltaJoinSql=@DeltaJoinSql,@RelatedBusinessKeys=@RelatedBusinessKeys,@SqlWhereOuter=@SqlWhereOuter, @InsertColumns =@InsertColumns,@TablePrefix=@TablePrefix,@PrestageTargetFlag=@PrestageTargetFlag ,@DeleteDDL=@DeleteDDL ,@RowChecksum=@RowChecksum 
+			DECLARE @ctasTarget sysname =@TargetObject
+			if @TableSwapFlag =1
+				SET @ctasTarget = REPLACE(@TargetObject, '.','_int.')
+			EXEC [dwa].[usp_TableLoad_CTAS] @TableID = @TableID, @TargetObject=@ctasTarget,@SourceObject=@SourceObject ,@SelectColumns=@SelectColumns,@JoinSQL=@JoinSQL,@SqlWhere=@SqlWhere,@PrestageJoinSQL=@PrestageJoinSQL,@DeltaJoinSql=@DeltaJoinSql,@RelatedBusinessKeys=@RelatedBusinessKeys,@SqlWhereOuter=@SqlWhereOuter, @InsertColumns =@InsertColumns,@TablePrefix=@TablePrefix,@PrestageTargetFlag=@PrestageTargetFlag ,@DeleteDDL=@DeleteDDL ,@RowChecksum=@RowChecksum 
 			IF @PrestageTargetFlag=1 
 				SELECT @sqlWhereOuter=null, @CTAS =0, @JoinSQL=NULL, @SqlWhere=null, @SourceObject=@PrestageTargetObject, @TargetObject=@TargetObjectFinal
 			ELSE
@@ -454,9 +457,10 @@ BEGIN
 			EXEC [dwa].[usp_TableLoad_Delete] @TableID=@TableID ,@SelectColumns=@SelectColumns,@JoinSQL=@JoinSQL 
 	
 		/* TableSwap */
+
 		IF @TableSwapFlag=1 
 		BEGIN
-			exec [dwa].[usp_TableSwap] @SourceTable=@SourceObject , @TargetTable=@TargetObject
+			exec [dwa].[usp_TableSwap] @SourceTable=@ctasTarget , @TargetTable=@TargetObject
 		END
 	END
 	ELSE IF @Skip=0

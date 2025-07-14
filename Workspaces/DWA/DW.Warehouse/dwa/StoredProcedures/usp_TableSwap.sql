@@ -30,7 +30,7 @@ BEGIN
 			return
 
 	SET @sql=@sql + CHAR(9) +'ALTER SCHEMA ' + @TargetSchema  + ' TRANSFER ' + @SourceTable + ';' + CHAR(13)
-	SET @sql=@sql + CHAR(9) +'ALTER SCHEMA ' + @SourceSchema  + ' TRANSFER ' + @TempTable + ';' + CHAR(13)
+	SET @sql = @sql +CHAR(9) + 'DROP TABLE IF EXISTS ' + @TempTable + ';' + CHAR(13)
 	SET @sql = @sql + CHAR(9) +'COMMIT TRANSACTION;'+ CHAR(13)
 	SET @sql = @sql + 'END TRY'+ CHAR(13)
 	SET @sql = @sql + 'BEGIN CATCH'+ CHAR(13)
@@ -38,6 +38,6 @@ BEGIN
 	SET @sql = @sql + CHAR(9) +'THROW'+ CHAR(13)
 	SET @sql = @sql + 'END CATCH;'+ CHAR(13)
 	print @sql
-
+	exec (@sql)
 
 END
