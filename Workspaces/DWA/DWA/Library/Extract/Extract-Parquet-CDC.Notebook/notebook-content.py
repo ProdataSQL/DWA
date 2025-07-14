@@ -119,20 +119,22 @@ for file in files:
     if existing_columns:
         df = df.drop(*existing_columns)   
     row = df.head(1)
+    if '.' in base_table_name:
+            schema_name, table_name = base_table_name.split('.', 1)
+    else:
+        table_name=base_table_name
+    if not schema_name: 
+        schema_name = default_lakehouse_schema
+    if schema_name:
+            table_name =base_table_name.split(".")[-1]
+            table_name =f"{schema_name}/{table_name}"
+    
+    table_name = re.sub(r'_(\d{14})$', '', table_name)   #Strip timestamp if present
+    table_path = f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{lakehouse_id}/Tables/{table_name}"
     if row: 
         if "__rowMarker__" not in df.columns:
             raise Exception(f"File {file_path } does not contain the __rowMarker__ column. See https://learn.microsoft.com/en-us/fabric/database/mirrored-database/open-mirroring-landing-zone-format#format-requirements")
         operation = "overwrite" if row and row[0]["__rowMarker__"] == 0 else "merge"
-        if '.' in base_table_name:
-            schema_name, table_name = base_table_name.split('.', 1)
-        else:
-            table_name=base_table_name
-        if not schema_name: 
-            schema_name = default_lakehouse_schema
-        if schema_name:
-                table_name =f"{schema_name}/{base_table_name}"
-        table_name = re.sub(r'_(\d{14})$', '', table_name)   #Strip timestamp if present
-        table_path = f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{lakehouse_id}/Tables/{table_name}"
         if not notebookutils.fs.exists(table_path):
             operation="overwrite"
         if operation=="overwrite":
@@ -145,13 +147,14 @@ for file in files:
             merge_condition = ' AND '.join([f'target.{key} = source.{key}' for key in keys])        
             sink_df = DeltaTable.forPath(spark, table_path)
             sink_df.alias("target").merge(df.alias("source"), merge_condition).whenNotMatchedInsertAll().whenMatchedUpdateAll().execute()
+        print(f"\t- {operation} for {base_table_name}=>{table_name} {(datetime.now() - t).total_seconds():.1f} seconds")
     sql = 'exec config.usp_cdcSqlCommit @Table=?'
-    values = (base_table_name,)
+    table_name=table_name.replace('/', '.')
+    values = (f"{table_name}",)
     cursor = sql_connection.cursor()
     cursor.execute(sql, values)
     sql_connection.commit()
     notebookutils.fs.rm(file_path, recurse=False)
-    print(f"\t- {operation} for {base_table_name}=>{table_name} {(datetime.now() - t).total_seconds():.1f} seconds")
 #Remove Empty Folders
 subfolders = [f.path for f in mssparkutils.fs.ls(files_path) if f.isDir]
 for folder in subfolders:
