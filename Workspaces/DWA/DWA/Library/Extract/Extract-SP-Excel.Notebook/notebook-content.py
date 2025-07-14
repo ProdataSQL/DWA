@@ -30,13 +30,14 @@
 
 # PARAMETERS CELL ********************
 
-SourceConnectionSettings='{ "sharepoint_url":"prodata365.sharepoint.com","site":"Fabric","tenant_id":"d8ca992a-5fbe-40b2-9b8b-844e198c4c94","app_client_id":"app-fabricdw-dev-clientid","app_client_secret":"app-fabricdw-dev-clientsecret","keyvault":"kv-fabric-dev"}'
+SourceConnectionSettings='{ "sharepoint_url":"prodata365.sharepoint.com","site":"Fabric","tenant_id":"d8ca992a-5fbe-40b2-9b8b-844e198c4c94","app_client_id":"app-fabricdw-dev-clientid","app_client_secret":"app-fabricdw-dev-clientsecret","keyvault":"dw-training-kv"}'
 TargetConnectionSettings=None
 # See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_excel.html for excel options
 SourceSettings='{"Drive": "AdventureWorks", "Directory" : "AW/erp", "File" : "*.xlsx" }'
 TargetSettings = '{"SchemaName":"aw_stg"}' 
 ActivitySettings=None
-LineageKey = "00000000-0000-0000-0000-000000000000"
+LineageKey = "00000000-0000-0000-0000-000000000001"
+
 
 # METADATA ********************
 
@@ -154,7 +155,6 @@ access_token = get_sharepoint_token(tenant_id, client_id, keyvault, client_secre
 headers = { 'Authorization': f'Bearer {access_token}' }
 site = get_sharepoint_site(sharepoint_url, site_name, headers)
 drive = get_sharepoint_drive(site["id"], source_drive_name, headers)
-
 files = get_sharepoint_files_wildcard(site['id'], drive['id'], source_directory, source_file)
 
 # METADATA ********************
@@ -212,8 +212,8 @@ for file in files:
         row_count = df.shape[0]
 
         # Cleanse Headers
-        pattern = '[ -:?><".,;{}()\n\t/=%]'
-        new_column_names = [re.sub(pattern, '_', str(col).strip(pattern)) for col in df.columns]
+        pattern = r'[ \-:?><\".,;{}\(\)\n\t/=%]'
+        new_column_names = [re.sub(pattern, '_', str(col).strip()) for col in df.columns]
         rename_map = dict(zip(df.columns, new_column_names))
         df.reset_index(inplace=True)
 

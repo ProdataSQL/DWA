@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Extract-SP-Excel",
+    "displayName": "Transform-LH-DuckDB",
     "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "3ec147af-c209-9018-4efb-61b4950449c0"
+    "logicalId": "c305da77-db0a-a81b-46f9-15529bdcfb0e"
   }
 }

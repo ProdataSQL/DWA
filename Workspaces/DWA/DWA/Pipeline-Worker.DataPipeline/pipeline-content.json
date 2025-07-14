@@ -160,6 +160,10 @@
                             "ActivitySettings": {
                               "value": "@item().ActivitySettings",
                               "type": "Expression"
+                            },
+                            "LineageKey": {
+                              "value": "@item().LineageKey",
+                              "type": "Expression"
                             }
                           },
                           "waitOnCompletion": true,
