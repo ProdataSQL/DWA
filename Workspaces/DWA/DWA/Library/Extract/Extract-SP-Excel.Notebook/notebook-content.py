@@ -232,6 +232,7 @@ for file in files:
             current_mode = "append"
         print (f"- Write {row_count} rows from df to {lakehouse_name}.{current_target_table} in {(datetime.now()-t1).total_seconds()} seconds")
 
+
 # METADATA ********************
 
 # META {

@@ -1,12 +1,11 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
-    "type": "Notebook",
-    "displayName": "Extract-SP-Excel_v1",
-    "description": "New notebook"
+    "type": "DataPipeline",
+    "displayName": "SCH_Ops"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "3ec147af-c209-9018-4efb-61b4950449c0"
+    "logicalId": "11f7b8cb-cf58-a297-4522-5fb8bbef03cc"
   }
 }

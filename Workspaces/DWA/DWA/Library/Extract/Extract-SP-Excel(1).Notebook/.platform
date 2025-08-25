@@ -1,11 +1,12 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
-    "type": "DataPipeline",
-    "displayName": "TR_AdventureWorks"
+    "type": "Notebook",
+    "displayName": "Extract-SP-Excel(1)",
+    "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "32694129-8498-8a48-46c5-bbaeb09d979d"
+    "logicalId": "97ced11a-8d27-8806-4865-77ab8d913015"
   }
 }

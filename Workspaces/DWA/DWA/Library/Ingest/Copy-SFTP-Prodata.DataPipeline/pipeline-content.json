@@ -13,17 +13,18 @@
               "type": "SftpReadSettings",
               "disableChunking": false,
               "recursive": {
-                "value": "@if(contains(json(string(pipeline().parameters.SourceSettings)),'Recurisve'), bool(json(string(pipeline().parameters.SourceSettings)).Recurisve), false)",
+                "value": "@if(contains(json(string(pipeline().parameters.SourceSettings)),'recurisve'), bool(json(string(pipeline().parameters.SourceSettings)).recurisve), false)",
                 "type": "Expression"
               },
               "wildcardFolderPath": {
-                "value": "@json(string(pipeline().parameters.SourceSettings)).Directory",
+                "value": "@json(string(pipeline().parameters.SourceSettings)).directory",
                 "type": "Expression"
               },
               "wildcardFileName": {
-                "value": "@json(string(pipeline().parameters.SourceSettings)).File",
+                "value": "@json(string(pipeline().parameters.SourceSettings)).file",
                 "type": "Expression"
-              }
+              },
+              "deleteFilesAfterCompletion": false
             },
             "datasetSettings": {
               "type": "Binary",
@@ -50,18 +51,18 @@
                 "location": {
                   "type": "LakehouseLocation",
                   "folderPath": {
-                    "value": "@json(string(pipeline().parameters.TargetSettings)).Directory",
+                    "value": "@json(string(pipeline().parameters.TargetSettings)).directory",
                     "type": "Expression"
                   }
                 }
               },
               "linkedService": {
-                "name": "LH",
+                "name": "2f74075b_60a1_45d9_a636_9dd9425856cf",
                 "properties": {
                   "type": "Lakehouse",
                   "typeProperties": {
-                    "artifactId": "54a6a75f-8983-ae4c-406d-59d7d58f4f2d",
-                    "workspaceId": "00000000-0000-0000-0000-000000000000",
+                    "artifactId": "@if(contains(pipeline().parameters.TargetConnectionSettings,'lakehouseId'),json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId,activity('Get Env Variables').output.pipelineReturnValue.LakehouseID)",
+                    "workspaceId": "@if(contains(pipeline().parameters.TargetConnectionSettings,'worspaceId'),json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId,pipeline().DataFactory)",
                     "rootFolder": "Files"
                   },
                   "annotations": []
@@ -80,6 +81,29 @@
           "secureOutput": false
         },
         "name": "Copy-SFTP-Prodata",
+        "dependsOn": [
+          {
+            "activity": "Get Env Variables",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ExecutePipeline",
+        "typeProperties": {
+          "pipeline": {
+            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
+            "type": "PipelineReference"
+          },
+          "parameters": {},
+          "waitOnCompletion": true
+        },
+        "policy": {
+          "secureInput": false
+        },
+        "name": "Get Env Variables",
         "dependsOn": []
       }
     ],
@@ -87,21 +111,23 @@
       "SourceSettings": {
         "type": "string",
         "defaultValue": {
-          "Directory": "/aw/",
-          "File": "*.*"
+          "directory": "/aw/",
+          "file": "*.*"
         }
       },
       "TargetSettings": {
         "type": "string",
         "defaultValue": {
-          "Directory": "landing/AdventureWorks/erp"
+          "directory": "landing/AdventureWorks/erp"
         }
       },
       "SourceConnectionSettings": {
-        "type": "string"
+        "type": "string",
+        "defaultValue": {}
       },
       "TargetConnectionSettings": {
-        "type": "string"
+        "type": "string",
+        "defaultValue": {}
       },
       "ActivitySettings": {
         "type": "string"

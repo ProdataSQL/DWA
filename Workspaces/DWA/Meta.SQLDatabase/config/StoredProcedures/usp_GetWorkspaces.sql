@@ -1,14 +1,13 @@
-
 /*
-	Return Workspaces
+    Return Workspaces
 */
-CREATE   PROCEDURE [config].[usp_GetWorkspaces]
+CREATE    PROCEDURE [config].[usp_GetWorkspaces]
 AS
 BEGIN
     SET NOCOUNT ON
-	SELECT DISTINCT JSON_VALUE([ConnectionSettings], '$.WorkspaceID') AS WorkspaceID
-	FROM config.Configurations
-	WHERE JSON_VALUE([ConnectionSettings], '$.WorkspaceID')  is not null 
+    SELECT DISTINCT JSON_VALUE(lower([ConnectionSettings]), lower('$.workspaceid')) AS WorkspaceID
+    FROM config.Configurations
+    WHERE JSON_VALUE(lower([ConnectionSettings]), lower('$.workspaceid')) is not null
 END
 
 GO

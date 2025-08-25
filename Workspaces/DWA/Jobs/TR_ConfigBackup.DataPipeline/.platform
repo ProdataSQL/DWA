@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "DataPipeline",
-    "displayName": "TR_Ops"
+    "displayName": "SCH_ConfigBackup"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "11f7b8cb-cf58-a297-4522-5fb8bbef03cc"
+    "logicalId": "ec6eb6b4-e10a-87fe-49ea-70bcbd999a6a"
   }
 }

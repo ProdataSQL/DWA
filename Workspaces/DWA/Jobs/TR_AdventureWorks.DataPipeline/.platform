@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "DataPipeline",
-    "displayName": "TR_ConfigBackup"
+    "displayName": "SCH_AdventureWorks"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "ec6eb6b4-e10a-87fe-49ea-70bcbd999a6a"
+    "logicalId": "32694129-8498-8a48-46c5-bbaeb09d979d"
   }
 }
