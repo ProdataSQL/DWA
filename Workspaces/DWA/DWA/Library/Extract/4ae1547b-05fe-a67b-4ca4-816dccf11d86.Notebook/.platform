@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Extract-CSV",
+    "displayName": "Extract-CSV-Pandas",
     "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "76d83d4f-7f30-833c-4202-821ac3f9202b"
+    "logicalId": "4ae1547b-05fe-a67b-4ca4-816dccf11d86"
   }
 }

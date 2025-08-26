@@ -22,39 +22,21 @@
 
 # MARKDOWN ********************
 
-# #### Extract-XML
+# #### Extract-CSV-Pandas
 # 
-# This notebook transforms XML files using a provided XSLT stylesheet and loads the resulting data into a staging schema in Lakehouse.
-# 
-# The XSLT logic is embedded via the ActivitySettings parameter, allowing for flexible parsing and formatting of XML structures. It also supports structured ingestion of XML content stored in Lakehouse file paths.
+# This notebook copies a single CSV file using Pandas from a Data lake into a table in the staging schema in Lakehouse. It supports configurable CSV read options (like delimiter and encoding) and writes the data in either append or overwrite mode.
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"directory" : "unittest/XML", "file" : "xmlTest.xml"}'
-TargetSettings ='{"table" : "xmlTest","schema" : "dbo", "mode":"overwrite" }'
-ActivitySettings='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="text" encoding="UTF-8"/>
-  <xsl:template match="/data">
-    <xsl:text>"Name","Email","Grade","Age"&#10;</xsl:text>
-    <xsl:apply-templates select="student"/>
-  </xsl:template>
-  <xsl:template match="student">
-	<xsl:text>"</xsl:text>
-    <xsl:value-of select="@name"/>
-    <xsl:text>","</xsl:text>
-    <xsl:value-of select="email"/>
-    <xsl:text>","</xsl:text>
-    <xsl:value-of select="grade"/>
-    <xsl:text>","</xsl:text>
-    <xsl:value-of select="age"/>
-    <xsl:text>"&#10;</xsl:text>
-  </xsl:template>
-</xsl:stylesheet>
-''' #Stores the XSLT stylesheet for the source file
+#See https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html for CSV options
+SourceSettings = '{"directory" : "unittest/csv/", "file" : "Date_NoHeader.csv", "header":0,"delimiter":",","encoding":"UTF-8"}'
+TargetSettings = '{"tableName":"ZipExample", "schema":"dbo", "mode":"overwrite"}'
 # all of these are optional and set to their default
-SourceConnectionSettings = None
-TargetConnectionSettings = None
+SourceConnectionSettings=None
+TargetConnectionSettings=None
+ActivitySettings=None
 LineageKey = 1
+
 
 # METADATA ********************
 
@@ -65,14 +47,15 @@ LineageKey = 1
 
 # CELL ********************
 
-from lxml import etree
 import os
 import json
+from pyspark.sql.functions import lit
 import pandas as pd
-from io import StringIO
+pd.DataFrame.iteritems = pd.DataFrame.items
 import sempy.fabric as fabric
 
-# Settings
+# Your existing settings
+
 workspaces = fabric.list_workspaces()
 
 source_connection_settings = json.loads(SourceConnectionSettings or "{}")
@@ -87,34 +70,25 @@ target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_wo
 target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
 target_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
 
-TargetSettings = TargetSettings or "{}"
-SourceSettings = SourceSettings or "{}"
+target_lakehouse_details=fabric.FabricRestClient().get(f"/v1/workspaces/{target_workspace_id}/lakehouses/{target_lakehouse_id}")
+default_schema=target_lakehouse_details.json().get("properties", {}).get("defaultSchema") # Check if schema is enabled and get default schema
 
-target_settings = json.loads(TargetSettings or "{}")
 source_settings = json.loads(SourceSettings or "{}")
-
 source_directory = source_settings["directory"]
 source_file = source_settings["file"]
+del source_settings["directory"]
+del source_settings["file"]
 
-FILES_PREFIX = "Files"
-if not source_directory.startswith(FILES_PREFIX):
-    source_directory = os.path.join(FILES_PREFIX, source_directory)
+source = os.path.join(f"abfss://{source_workspace_id}@onelake.dfs.fabric.microsoft.com/{source_lakehouse_id}/Files",source_directory) 
 
-LAKEHOUSE_PREFIX = "/lakehouse/default"
-if not source_directory.startswith(LAKEHOUSE_PREFIX):
-    source_directory = os.path.join(LAKEHOUSE_PREFIX, source_directory)
-
+target_settings = json.loads(TargetSettings or "{}")
 target_schema = target_settings.get("schema", "dbo") 
 target_table = target_settings.get("table", source_file.split(".")[0])
-
 if target_schema != "dbo":
     target_table = f"{target_schema}_{target_table}"
+write_mode = target_settings.get("mode", "overwrite")
 
-
-file_path= os.path.join(source_directory, source_file)
-
-mode = target_settings.get("mode","overwrite")
-
+target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{target_schema}"
 
 # METADATA ********************
 
@@ -135,23 +109,24 @@ if source_workspace_name==target_workspace_name:
 else:
     print(f"Source Workspace: {source_workspace_name}, Lakehouse: {source_lakehouse_name}")
     print(f"Target Workspace: {target_workspace_name}, Lakehouse: {target_lakehouse_name}")
-    
-xml_data = etree.parse(file_path)
-xslt_stylesheet = etree.XML(ActivitySettings)
-parsed_xml = str(etree.XSLT(xslt_stylesheet)(xml_data))
 
-df = pd.read_csv(StringIO(parsed_xml))
-
-df["LineageKey"] = LineageKey
-df["File"] = source_file
+# Extract file
+ 
+file_path = os.path.join(source, source_file)
+#print(f"source_settings: {source_settings}")
+df = pd.read_csv(file_path, **source_settings)    
 row_count = df.shape[0]
+spark_df = spark.createDataFrame(df)
+# Add 'FileName' and 'LineageKey' columns
+spark_df = spark_df.withColumn("FileName", lit(source_file))
+spark_df = spark_df.withColumn("LineageKey", lit(LineageKey))
 
-if mode == "overwrite":
-    spark.sql(f"DROP TABLE IF EXISTS {target_table}")
-
-spark.createDataFrame(df).write.mode(mode).format("delta").saveAsTable(target_table)
-
-print(f"Wrote {row_count} rows from {file_path} to {target_schema}.{target_table}.")
+table_path = os.path.join(target, target_table)
+if write_mode=="overwrite":
+        spark_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(table_path)
+else:
+    spark_df.write.mode(mode).format("delta").saveAsTable(table_path)
+print(f"Wrote {row_count} rows from '/Files/{file_path.split('/Files/')[-1]}' to /Tables/{target_schema}/{target_table}")
 
 # METADATA ********************
 

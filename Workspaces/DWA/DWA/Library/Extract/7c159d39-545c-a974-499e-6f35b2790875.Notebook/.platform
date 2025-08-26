@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Extract-SP-Excel_v1",
+    "displayName": "Extract-CSV",
     "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "3ec147af-c209-9018-4efb-61b4950449c0"
+    "logicalId": "7c159d39-545c-a974-499e-6f35b2790875"
   }
 }
