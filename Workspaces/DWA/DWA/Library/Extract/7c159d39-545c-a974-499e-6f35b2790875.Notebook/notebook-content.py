@@ -161,8 +161,7 @@ if len(Files) > 1 and column_names:
 
 for table_files in Files:
     table_name = target_table or os.path.basename(table_files[0]).split(".")[0]
-    table_path = os.path.join(target, table_name)
-
+    
     # table_name handling for no schema/schema enabled lakehouses
     if not default_schema:
         schema_path = f"/dbo"
@@ -171,6 +170,7 @@ for table_files in Files:
     else:
         schema_path = f"/{default_schema}"
     target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables{schema_path}"
+    table_path = os.path.join(target, table_name)
     # Write to delta/LH using Spark
     t = datetime.now()
 
