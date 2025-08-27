@@ -6,6 +6,10 @@
         "typeProperties": {
           "source": {
             "type": "SqlServerSource",
+            "sqlReaderQuery": {
+              "value": "@if(\n    or(\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'SELECT'\n        ),\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'EXEC'\n        )\n    ),\n    json(string(pipeline().parameters.SourceSettings)).sourceObject,\n    if(\n        contains(\n            pipeline().parameters.SourceSettings,\n            'selectColumns'\n        ),\n        concat(\n            'SELECT ',\n            json(string(pipeline().parameters.SourceSettings)).selectColumns,\n            ' FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        ),\n        concat(\n            'SELECT * FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        )\n    )\n)",
+              "type": "Expression"
+            },
             "partitionOption": "None",
             "queryTimeout": "02:00:00",
             "additionalColumns": [
@@ -20,16 +24,8 @@
             "datasetSettings": {
               "type": "SqlServerTable",
               "typeProperties": {
-                "schema": {
-                  "value": "@json(string(pipeline().parameters.SourceSettings)).schema",
-                  "type": "Expression"
-                },
-                "table": {
-                  "value": "@json(string(pipeline().parameters.SourceSettings)).sourceObject",
-                  "type": "Expression"
-                },
                 "database": {
-                  "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).database",
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).database",
                   "type": "Expression"
                 }
               },
@@ -42,8 +38,13 @@
           },
           "sink": {
             "type": "LakehouseTableSink",
-            "tableActionOption": "OverwriteSchema",
+            "tableActionOption": {
+              "value": "@if(\n  contains(\n    pipeline().parameters.TargetSettings, 'tableActionOption'\n  )\n  ,json(string(pipeline().parameters.TargetSettings)).tableActionOption\n  ,'OverwriteSchema'\n  )",
+              "type": "Expression"
+            },
+            "upsertSettings": {},
             "partitionOption": "None",
+            "applyVOrder": true,
             "datasetSettings": {
               "type": "LakehouseTable",
               "typeProperties": {
@@ -170,8 +171,7 @@
         "type": "string",
         "defaultValue": {
           "database": "AdventureworksLT",
-          "sourceObject": "Product",
-          "schema": "SalesLT"
+          "sourceObject": "SalesLT.Product"
         }
       },
       "TargetSettings": {
