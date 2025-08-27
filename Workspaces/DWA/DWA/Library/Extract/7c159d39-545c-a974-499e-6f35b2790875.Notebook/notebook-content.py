@@ -137,7 +137,6 @@ if not mssparkutils.fs.exists(source_path) or len(mssparkutils.fs.ls(source_path
 file_list = mssparkutils.fs.ls(source_path)
 if len(file_list) == 0:
     mssparkutils.notebook.exit(0) # no files to process, quit
-##
 if source_file:
     files_to_process = [
         os.path.join(source_path, f.name)
@@ -161,15 +160,15 @@ if len(Files) > 1 and column_names:
 
 for table_files in Files:
     table_name = target_table or os.path.basename(table_files[0]).split(".")[0]
-    
     # table_name handling for no schema/schema enabled lakehouses
     if not default_schema:
-        schema_path = f"/dbo"
+        schema_name = f"dbo"
+        table_name = f"{target_schema}_{table_name}" if target_schema else table_name   
     elif len(target_schema)>0:
-        schema_path = ""
+        schema_name = target_schema
     else:
-        schema_path = f"/{default_schema}"
-    target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables{schema_path}"
+        schema_name = f"{default_schema}"
+    target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{schema_name}"
     table_path = os.path.join(target, table_name)
     # Write to delta/LH using Spark
     t = datetime.now()
@@ -178,7 +177,7 @@ for table_files in Files:
     in_row_count = df.count()
     print(f"Extracting {', '.join(os.path.basename(f) for f in table_files)} "
     f"from Files/{source_directory} "
-    f"into Tables{schema_path}/{table_name.replace('.', '/')}")
+    f"into Tables/{schema_name}/{table_name.replace('.', '/')}")
 
     pattern = r'[ ,\;{}()\n\t=]'
     clean_headers = [re.sub(pattern, '_', col) for col in column_names or df.columns]
@@ -201,11 +200,9 @@ for table_files in Files:
     
     if write_mode == "merge":
         target_df = DeltaTab.forPath(spark, table_path)
-        target_df.alias("target")\
-            .merge(df.alias("source"), merge_condition)\
-            .whenNotMatchedInsertAll().execute()
+        target_df.alias("target").merge(df.alias("source"), merge_condition).whenNotMatchedInsertAll().execute()
     else:
-        df.write.mode(write_mode).format("delta").saveAsTable(table_path)
+        df.write.mode(write_mode).format("delta").save(table_path)
 
     print(f"- Read  {in_row_count} rows from {len(table_files)} file{'s' if len(table_files) != 1 else ''}"
         f". Wrote {out_row_count} rows in {(datetime.now()-t).total_seconds():.2f} seconds")
@@ -216,8 +213,6 @@ for table_files in Files:
             archive_path = os.path.join(archive,archive_folder,os.path.basename(file))
             print(f"Archiving {file} to {archive_folder}.")
             mssparkutils.fs.mv(file, archive_path, True, True)
-
-
 
 # METADATA ********************
 
