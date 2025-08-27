@@ -24,11 +24,11 @@
 
 # PARAMETERS CELL ********************
 
-SourceConnectionSettings='{"host":"prodatasftp.blob.core.windows.net", "userName":"prodatasftp.prodata", "port":22, "keyVault":"https://kv-fabric-dev.vault.azure.net/", "secret":"prodata-sftp-password"}'
-SourceSettings='{"directory": "aw/", "file": "*.*" }'
-TargetConnectionSettings=None
-TargetSettings='{"directory": "Files/landing/aw"}'
-LineageKey= 0
+SourceConnectionSettings = '{"host":"prodatasftp.blob.core.windows.net", "userName":"prodatasftp.prodata", "port":22, "keyVault":"https://kv-fabric-dev.vault.azure.net/", "secret":"prodata-sftp-password"}'
+SourceSettings = '{"directory": "aw/", "file": "*.*" }'
+TargetConnectionSettings = None
+TargetSettings = '{"directory": "Files/landing/aw"}'
+LineageKey = 0
 
 # METADATA ********************
 

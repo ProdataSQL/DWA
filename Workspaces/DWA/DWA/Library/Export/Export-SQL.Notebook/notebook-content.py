@@ -23,13 +23,12 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"SourceObject":"FabricDW.config.Configurations"}'
-TargetSettings ='{"Directory": "export/parquet", "File":"Configurations.parquet"}'
-SourceConnectionSettings=None
-TargetConnectionSettings=None
-ActivitySettings=None
+SourceSettings = '{"SourceObject":"FabricDW.config.Configurations"}'
+TargetSettings = '{"Directory": "export/parquet", "File":"Configurations.parquet"}'
+SourceConnectionSettings = None
+TargetConnectionSettings = None
+ActivitySettings = None
 LineageKey = 0
-
 
 # METADATA ********************
 

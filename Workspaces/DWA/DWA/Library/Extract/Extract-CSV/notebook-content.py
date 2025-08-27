@@ -28,12 +28,12 @@
 
 # PARAMETERS CELL ********************
 
+# SourceSettings Options https://spark.apache.org/docs/3.5.4/sql-data-sources-csv.html
 SourceSettings = '{"directory": "landing/aw", "file": "Account.csv"}' # "condition" : "target.RowChecksum = source.RowChecksum","mode":"merge"
-# Source Setting Options https://spark.apache.org/docs/3.5.4/sql-data-sources-csv.html
 TargetSettings = '{"schema":"aw_stg", "mode":"overwrite" }'
 SourceConnectionSettings = None
 TargetConnectionSettings= None
-# all of these are optional and set to their default
+# ActivitySettings are optional and set to their default
 ActivitySettings = '{"withChecksum" : false, "dedupe": false}'
 LineageKey = '00000000-0000-0000-0000-000000000000'
 

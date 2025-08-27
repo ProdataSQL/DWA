@@ -8,12 +8,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
-# META       "default_lakehouse_name": "FabricLH",
-# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
+# META       "default_lakehouse_name": "LH",
+# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
+# META           "id": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
 # META         }
 # META       ]
 # META     }
@@ -38,12 +38,6 @@ SourceSettings='{"drive": "Unittest", "directory" : "AW/xlsx", "file" : "*.xlsx"
 TargetSettings = '{"schema":"tst","mode":"overwrite"}'  
 ActivitySettings=None
 LineageKey = "00000000-0000-0000-0000-000000000001"
-
-# unittests
-# 1. Multiple Files
-#TargetConnectionSettings='{"lakehouse":"FabricLH", "lakehouseId":"f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c", "workspaceId":"9b8a6500-5ccb-49a9-885b-b5b081efed75"}'
-#SourceSettings = '{"drive": "Unittest", "directory": "Excel", "file": "File*.xlsx","sheetName" : "","header" : "None","dType": "str"}'
-#TargetSettings = '{"schema":"tst", "table":"multipleSPExcels1", "mode":"overwrite" }'
 
 # METADATA ********************
 
@@ -79,9 +73,7 @@ lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_
 workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(workspace_id, "Unknown")
 
 source_settings = json.loads(SourceSettings or '{}')
-source_drive_name = source_settings.get("drive", "documents")
-source_settings.pop("drive",None)
-source_settings.pop("documents",None)
+source_drive_name = source_settings.pop("drive", "documents")
 source_directory = source_settings["directory"]
 del source_settings["directory"]
 source_file = source_settings["file"]
