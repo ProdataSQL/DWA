@@ -34,7 +34,7 @@ BEGIN
     -- Get ConfigurationID from config.Configuration using ConnectionID
     SELECT @ConfigurationID = ConfigurationID
     FROM config.Configurations
-    WHERE JSON_VALUE(ConnectionSettings, '$.ConnectionID') = @ConnectionID;
+    WHERE JSON_VALUE(ConnectionSettings, '$.connectionId') = @ConnectionID;
 
    
     UPDATE config.cdcSqlTables
