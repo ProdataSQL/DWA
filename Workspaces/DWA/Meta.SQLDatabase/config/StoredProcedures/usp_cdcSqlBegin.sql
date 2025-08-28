@@ -1,7 +1,3 @@
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 /*
     Begin SQL Server CDC and Return a List of Tables for CDC 
     Log Target LSN amd Traget Datetime 
@@ -59,3 +55,6 @@ BEGIN
       AND (@Table IS NULL OR [Table] = @Table)
       AND Enabled = 1;
 END;
+
+GO
+
