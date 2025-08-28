@@ -70,9 +70,7 @@ target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_la
 target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
 target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
 target_workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
-client = fabric.FabricRestClient()
-target_lakehouse_details=client.get(f"/v1/workspaces/{target_workspace_id}/lakehouses/{target_lakehouse_id}")
-default_schema=target_lakehouse_details.json().get("properties", {}).get("defaultSchema") # Check if schema is enabled and get default schema
+
 
 # METADATA ********************
 
@@ -110,8 +108,7 @@ target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{targe
 target_table = target_settings.get("table", source_file.split(".")[0]) 
 write_mode = target_settings.get("mode", "overwrite")
 if write_mode == "merge":
-   merge_condition = target_settings["condition"]
-   del target_settings["condition"]
+   merge_condition = target_settings.pop("condition")
 
 
 # METADATA ********************
@@ -197,7 +194,7 @@ for file in files_to_process:
         has_header, header = True, 0
     source_settings["header"] = header
 
-    print(source_settings)
+    #print(f"sourcesettings: {source_settings}")
     if not sheet_name and sheet_name is not None:
         sheets = {excel_file.sheet_names[0] : excel_file.parse(**source_settings)}
     elif isinstance(sheet_name,str) and sheet_name != "*":
