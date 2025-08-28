@@ -11,7 +11,7 @@ GO
                 10/07/2025 Kristan, Added ConfigurationID
 
 */
-ALTER PROCEDURE [config].[usp_cdcSqlBegin]
+CREATE PROCEDURE [config].[usp_cdcSqlBegin]
 (
     @ConnectionID varchar(50) = '8a10eff2-cdcc-4b00-a2ef-35bae56d7ef2',
     @Database sysname = 'HICPStoreOne',
