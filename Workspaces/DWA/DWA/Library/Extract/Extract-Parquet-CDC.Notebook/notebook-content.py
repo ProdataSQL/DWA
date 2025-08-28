@@ -35,8 +35,8 @@
 
 SourceSettings = None #'{"sqlTables":"config.auditSqlTables", "schema":"aw"}'
 TargetSettings = None #'{"commitSproc":"config.usp_auditSqlCommit"}'
-SourceConnectionSettings = '{"lakehouse":"FabricLH","lakehouseId":"f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c","workspaceId":"9b8a6500-5ccb-49a9-885b-b5b081efed75"}'
-TargetConnectionSettings = '{"lakehouse":"FabricLH","lakehouseId":"f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c","workspaceId":"9b8a6500-5ccb-49a9-885b-b5b081efed75"}'
+SourceConnectionSettings = None
+TargetConnectionSettings = None
 ActivitySettings = None
 LineageKey = '00000000-0000-0000-0000-000000000000'
 

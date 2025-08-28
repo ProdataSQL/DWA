@@ -1,12 +1,8 @@
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 /*
     Return a List of Tables for CDC and their Primary Keys
     Used By: Extract-Parquet-CDC Notebook
     Test: 
-        exec [config].[usp_cdcSqlTables] @LakehouseName='StageDM2'
+        exec [config].[usp_cdcSqlTables] @LakehouseName='LH'
     History:    15/06/2025 Bob, Created           
                 29/07/2025 Kristan, added SqlTables param
 
@@ -30,5 +26,6 @@ BEGIN
         N'@LakehouseName sysname',
         @LakehouseName = @LakehouseName
 END
+
 GO
 

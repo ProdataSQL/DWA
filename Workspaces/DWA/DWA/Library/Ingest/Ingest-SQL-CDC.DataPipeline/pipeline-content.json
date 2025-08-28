@@ -201,11 +201,11 @@
                       "location": {
                         "type": "LakehouseLocation",
                         "folderPath": {
-                          "value": "@concat('LandingZone/',item().Table)",
+                          "value": "LandingZone/@{json(string(pipeline().parameters.TargetSettings)).Schema}.schema/@{split(item().Table,'.')[1]}",
                           "type": "Expression"
                         },
                         "fileName": {
-                          "value": "@concat(item().Table, '_', formatDateTime(utcNow(), 'yyyyMMddHHmmss'),'.parquet')",
+                          "value": "@{split(item().Table,'.')[1]}_@{formatDateTime(utcNow(), 'yyyyMMddHHmmss')}.parquet",
                           "type": "Expression"
                         }
                       },
