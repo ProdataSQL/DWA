@@ -201,7 +201,7 @@
                       "location": {
                         "type": "LakehouseLocation",
                         "folderPath": {
-                          "value": "LandingZone/@{json(string(pipeline().parameters.TargetSettings)).Schema}.schema/@{split(item().Table,'.')[1]}",
+                          "value": "LandingZone/@{json(string(pipeline().parameters.TargetSettings)).schema}.schema/@{split(item().Table,'.')[1]}",
                           "type": "Expression"
                         },
                         "fileName": {
