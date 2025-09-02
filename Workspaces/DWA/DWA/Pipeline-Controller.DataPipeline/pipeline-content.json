@@ -105,9 +105,15 @@
                         "type": "PipelineReference"
                       },
                       "parameters": {
-                        "PackageGroup": "@pipeline().parameters.PackageGroup",
-                        "PipelineID": "@pipeline().parameters.PipelineID",
-                        "PipelineSequence": "@item().PipelineSequence"
+                        "PackageGroup": {
+                          "value": "@pipeline().parameters.PackageGroup",
+                          "type": "Expression"
+                        },
+                        "PipelineID": -1,
+                        "PipelineSequence": {
+                          "value": "@item().PipelineSequence",
+                          "type": "Expression"
+                        }
                       },
                       "waitOnCompletion": true
                     },
@@ -189,10 +195,6 @@
       "Stage": {
         "type": "string",
         "defaultValue": "ALL"
-      },
-      "PipelineID": {
-        "type": "string",
-        "defaultValue": "-1"
       }
     },
     "variables": {
