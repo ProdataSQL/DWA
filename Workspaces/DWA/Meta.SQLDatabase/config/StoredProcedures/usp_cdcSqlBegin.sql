@@ -9,11 +9,11 @@
 */
 CREATE PROCEDURE [config].[usp_cdcSqlBegin]
 (
-    @ConnectionID varchar(50) = '8a10eff2-cdcc-4b00-a2ef-35bae56d7ef2',
-    @Database sysname = 'HICPStoreOne',
+    @connectionId varchar(50) = '8a10eff2-cdcc-4b00-a2ef-35bae56d7ef2',
+    @database sysname = 'HICPStoreOne',
     @target_lsn varchar(50) = '0x0005E0CA0006EDD90040',
     @target_datetime varchar(50) = '2025-06-15T20:21:40.757Z',
-    @Table sysname = null -- Optional if Just One Table
+    @table sysname = null -- Optional if Just One Table
 )
 AS
 BEGIN
@@ -30,15 +30,15 @@ BEGIN
     -- Get ConfigurationID from config.Configuration using ConnectionID
     SELECT @ConfigurationID = ConfigurationID
     FROM config.Configurations
-    WHERE JSON_VALUE(ConnectionSettings, '$.connectionId') = @ConnectionID;
+    WHERE JSON_VALUE(ConnectionSettings, '$.connectionId') = @connectionId;
 
    
     UPDATE config.cdcSqlTables
     SET target_lsn = @target_lsn_bin,
         target_datetime = @target_datetime2
     WHERE ConfigurationID = @ConfigurationID
-      AND [Database] = @Database
-      AND (@Table IS NULL OR [Table] = @Table)
+      AND [Database] = @database
+      AND (@table IS NULL OR [table] = @table)
       AND Enabled = 1;
 
     SELECT 
@@ -51,8 +51,8 @@ BEGIN
         PrimaryKeys
     FROM config.cdcSqlTables
     WHERE ConfigurationID = @ConfigurationID
-      AND [Database] = @Database
-      AND (@Table IS NULL OR [Table] = @Table)
+      AND [Database] = @database
+      AND (@table IS NULL OR [Table] = @table)
       AND Enabled = 1;
 END;
 

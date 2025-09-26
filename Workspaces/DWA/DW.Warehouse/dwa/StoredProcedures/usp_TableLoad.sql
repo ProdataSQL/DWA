@@ -18,8 +18,10 @@ History:
 	31/03/2025 Kristan, Dedupe TablePrefix
 	16/04/2025 Kristan, Hash identity method fix
 	01/05/2025 Shruti,  Added Collation checks to manage Case-sensitivity.
+	26/08/2025 Kristan, Issue with integers passed as Bks for identity method.
+
 */
-CREATE PROC [dwa].[usp_TableLoad] @TargetObject [nvarchar](512) =NULL, @TableID [int]= NULL, @RunID uniqueidentifier = NULL AS
+CREATE   PROC [dwa].[usp_TableLoad] @TargetObject [nvarchar](512) =NULL, @TableID [int]= NULL, @RunID uniqueidentifier = NULL AS
 BEGIN
 	BEGIN TRY
 	SET NOCOUNT ON 
@@ -102,6 +104,7 @@ BEGIN
 		, @ColumnsCollation varchar(512) = NULL
 		, @SourceCollation sysname
 		, @TargetCollation sysname
+		, @CastBusinessKeys nvarchar(max)
 	IF @TableID IS NULL
 		SELECT TOP 1 @TableID = t.TableID FROM Meta.config.edwTables t WHERE ((t.SchemaName + '.' +  t.TableName = @TargetObject) OR t.TableName =@TargetObject) ORDER BY TableID
 
@@ -355,7 +358,8 @@ BEGIN
 		IF @Identity=1 AND @BusinessKeys is not null
 		BEGIN
 			SET @InsertColumns=@PrimaryKey +','+ @InsertColumns
-			SET @SelectColumns=REPLACE(REPLACE(@IdentityExpression, '@BKs', (SELECT string_agg(@BusinessKeys,','))),'@MaxID',convert(varchar(4000),@MaxIdentity)) + ' AS '+ @PrimaryKey +','+ @SelectColumns
+			SELECT @CastBusinessKeys = STRING_AGG('cast(' + value + ' AS nvarchar(4000))', ',') FROM STRING_SPLIT(@BusinessKeys, ',');
+			SET @SelectColumns = REPLACE(REPLACE(@IdentityExpression, '@BKs', @CastBusinessKeys),'@MaxID', CONVERT(varchar(4000), @MaxIdentity)) + ' AS ' + QUOTENAME(@PrimaryKey) + ',' + @SelectColumns;
 		END
 		ELSE IF @Identity=1 AND @BusinessKeys is null
 		RAISERROR ('Unsupported Identity=1 AND BusinessKeys not defined for Table %s. Check Meta.config.edwTables.',16,1,@TargetTable)
