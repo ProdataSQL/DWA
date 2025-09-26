@@ -21,7 +21,7 @@
         "type": "Script",
         "typeProperties": {
           "database": {
-            "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+            "value": "@json(string(pipeline().parameters.SourceSettings)).database",
             "type": "Expression"
           },
           "scripts": [
@@ -36,7 +36,7 @@
           "scriptBlockExecutionTimeout": "02:00:00"
         },
         "externalReferences": {
-          "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID"
+          "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).connectionId"
         },
         "policy": {
           "timeout": "0.12:00:00",
@@ -62,17 +62,17 @@
             "type": "DataWarehouseSource",
             "sqlReaderStoredProcedureName": "[config].[usp_cdcSqlBegin]",
             "storedProcedureParameters": {
-              "ConnectionID ": {
+              "connectionId": {
                 "type": "String",
                 "value": {
-                  "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID",
+                  "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).connectionId",
                   "type": "Expression"
                 }
               },
-              "Database": {
+              "database": {
                 "type": "String",
                 "value": {
-                  "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).database",
                   "type": "Expression"
                 }
               },
@@ -90,10 +90,10 @@
                   "type": "Expression"
                 }
               },
-              "Table": {
+              "table": {
                 "type": "String",
                 "value": {
-                  "value": "@if(\n    contains(string(pipeline().parameters.SourceSettings), '\"Table\"'),\n    json(string(pipeline().parameters.SourceSettings)).Table,\n    null\n)",
+                  "value": "@if(\n    contains(string(pipeline().parameters.SourceSettings), '\"table\"'),\n    json(string(pipeline().parameters.SourceSettings)).table,\n    null\n)",
                   "type": "Expression"
                 }
               }
@@ -157,7 +157,7 @@
                 "source": {
                   "type": "SqlServerSource",
                   "sqlReaderQuery": {
-                    "value": "DECLARE @Table         varchar(255) = '@{item().Table}'\nDECLARE @capture_inst  sysname\nDECLARE @from_lsn_str varchar(22) = '@{item().from_lsn}'\nDECLARE @to_lsn_str varchar(22) = '@{item().to_lsn}'\nDECLARE @to_lsn        binary(10) \nDECLARE @from_lsn      binary(10) \nDECLARE @is_snapshot   bit\n\nIF len(@to_lsn_str) = 0 or @to_lsn_str is null \n\tSELECT @to_lsn = sys.fn_cdc_get_max_lsn(), @to_lsn_str = CONVERT(varchar, sys.fn_cdc_get_max_lsn(),1)\nELSE\n\tSET @to_lsn  = convert(binary(10),@to_lsn_str ,1)\n\nSET @from_lsn =convert(binary(10),nullif(@from_lsn_str,'') ,1)\nSELECT @capture_inst = capture_instance\nFROM cdc.change_tables\nWHERE source_object_id = OBJECT_ID(@Table)\n\nIF @capture_inst IS NULL\nBEGIN\n\tRAISERROR('CDC is not enabled for table %s', 16, 1, @Table)\n\tRETURN\nEND\n\n-- Determine if snapshot is required\nIF @from_lsn IS NULL\n\tOR NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM cdc.lsn_time_mapping\n\t\tWHERE start_lsn = @from_lsn\n\t)\n\tSET @is_snapshot = 1\nELSE\n\tSET @is_snapshot = 0\n\n-- Snapshot query\nIF @is_snapshot = 1\nBEGIN\n\tDECLARE @sql nvarchar(max) = '\n\tSELECT \n\t\tt.*\n\t,\t0 AS __rowMarker__\n\tFROM ' + @Table + ' t'\n\n\tEXEC sp_executesql @sql, N'@to_lsn binary(10)', @to_lsn\nEND\n-- CDC incremental query\nELSE\nBEGIN\n\tDECLARE @cdc_sql nvarchar(max) = '\n\tSELECT \n\t\tcdc.*\n\t,\tCASE cdc.__$operation\n\t\t\tWHEN 1 THEN 2\n\t\t\tWHEN 2 THEN 4\n\t\t\tWHEN 4 THEN 4\n\t\t\tELSE -1\n\t\tEND AS __rowMarker__\n\tFROM cdc.fn_cdc_get_net_changes_' + @capture_inst + '(' + @from_lsn_str + ',' +  @to_lsn_str + ', ''all'') AS cdc\n\tWHERE cdc.__$operation IN (1, 2, 4)'\n\n\tprint @cdc_sql\n\tEXEC sp_executesql @cdc_sql,\n\t\tN'@from_lsn binary(10), @to_lsn binary(10)',\n\t\t@from_lsn=@from_lsn, @to_lsn=@to_lsn\nEND\n\n\n",
+                    "value": "DECLARE @table         varchar(255) = '@{item().table}'\nDECLARE @capture_inst  sysname\nDECLARE @from_lsn_str varchar(22) = '@{item().from_lsn}'\nDECLARE @to_lsn_str varchar(22) = '@{item().to_lsn}'\nDECLARE @to_lsn        binary(10) \nDECLARE @from_lsn      binary(10) \nDECLARE @is_snapshot   bit\n\nIF len(@to_lsn_str) = 0 or @to_lsn_str is null \n\tSELECT @to_lsn = sys.fn_cdc_get_max_lsn(), @to_lsn_str = CONVERT(varchar, sys.fn_cdc_get_max_lsn(),1)\nELSE\n\tSET @to_lsn  = convert(binary(10),@to_lsn_str ,1)\n\nSET @from_lsn =convert(binary(10),nullif(@from_lsn_str,'') ,1)\nSELECT @capture_inst = capture_instance\nFROM cdc.change_tables\nWHERE source_object_id = OBJECT_ID(@table)\n\nIF @capture_inst IS NULL\nBEGIN\n\tRAISERROR('CDC is not enabled for table %s', 16, 1, @Table)\n\tRETURN\nEND\n\n-- Determine if snapshot is required\nIF @from_lsn IS NULL\n\tOR NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM cdc.lsn_time_mapping\n\t\tWHERE start_lsn = @from_lsn\n\t)\n\tSET @is_snapshot = 1\nELSE\n\tSET @is_snapshot = 0\n\n-- Snapshot query\nIF @is_snapshot = 1\nBEGIN\n\tDECLARE @sql nvarchar(max) = '\n\tSELECT \n\t\tt.*\n\t,\t0 AS __rowMarker__\n\tFROM ' + @Table + ' t'\n\n\tEXEC sp_executesql @sql, N'@to_lsn binary(10)', @to_lsn\nEND\n-- CDC incremental query\nELSE\nBEGIN\n\tDECLARE @cdc_sql nvarchar(max) = '\n\tSELECT \n\t\tcdc.*\n\t,\tCASE cdc.__$operation\n\t\t\tWHEN 1 THEN 2\n\t\t\tWHEN 2 THEN 4\n\t\t\tWHEN 4 THEN 4\n\t\t\tELSE -1\n\t\tEND AS __rowMarker__\n\tFROM cdc.fn_cdc_get_net_changes_' + @capture_inst + '(' + @from_lsn_str + ',' +  @to_lsn_str + ', ''all'') AS cdc\n\tWHERE cdc.__$operation IN (1, 2, 4)'\n\n\tprint @cdc_sql\n\tEXEC sp_executesql @cdc_sql,\n\t\tN'@from_lsn binary(10), @to_lsn binary(10)',\n\t\t@from_lsn=@from_lsn, @to_lsn=@to_lsn\nEND\n\n\n",
                     "type": "Expression"
                   },
                   "partitionOption": "None",
@@ -175,13 +175,13 @@
                     "type": "SqlServerTable",
                     "typeProperties": {
                       "database": {
-                        "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+                        "value": "@json(string(pipeline().parameters.SourceSettings)).database",
                         "type": "Expression"
                       }
                     },
                     "schema": [],
                     "externalReferences": {
-                      "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID"
+                      "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).connectionId"
                     },
                     "annotations": []
                   }
@@ -201,7 +201,7 @@
                       "location": {
                         "type": "LakehouseLocation",
                         "folderPath": {
-                          "value": "LandingZone/@{json(string(pipeline().parameters.TargetSettings)).schema}.schema/@{split(item().Table,'.')[1]}",
+                          "value": "LandingZone/@{json(string(pipeline().parameters.TargetSettings)).schema}.schema/@{split(item().table,'.')[1]}",
                           "type": "Expression"
                         },
                         "fileName": {
@@ -217,8 +217,8 @@
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).LakehouseID",
-                          "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).WorkspaceID",
+                          "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).lakehouseId",
+                          "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId",
                           "rootFolder": "Files"
                         },
                         "annotations": []
@@ -265,25 +265,24 @@
       "SourceSettings": {
         "type": "string",
         "defaultValue": {
-          "Database": "AdventureWorksLT"
+          "database": "AdventureWorksLT"
         }
       },
       "TargetSettings": {
-        "type": "string",
-        "defaultValue": {}
+        "type": "string"
       },
       "SourceConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "ConnectionID": "d5909f9f-7ce7-4aca-8da2-ba8bfb057610"
+          "connectionId": "d5909f9f-7ce7-4aca-8da2-ba8bfb057610"
         }
       },
       "TargetConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "LakehouseName": "LH",
-          "LakehouseID": "667bdf6d-f6d5-49f0-a956-26a4f38348e5",
-          "WorkspaceID": "e071acc0-d1b7-472e-b042-14fd2f3bdfc7"
+          "lakehouse": "LH",
+          "lakehouseId": "667bdf6d-f6d5-49f0-a956-26a4f38348e5",
+          "workspaceId": "e071acc0-d1b7-472e-b042-14fd2f3bdfc7"
         }
       },
       "ActivitySettings": {
