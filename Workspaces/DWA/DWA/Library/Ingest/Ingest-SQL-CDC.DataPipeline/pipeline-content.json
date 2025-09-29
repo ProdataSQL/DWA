@@ -109,7 +109,7 @@
             },
             "schema": [],
             "linkedService": {
-              "name": "52b14798_0b9c_4626_ae6a_632f181ae204",
+              "name": "bb2c1088_7e80_4171_9665_178af4566062",
               "properties": {
                 "type": "DataWarehouse",
                 "typeProperties": {
@@ -213,7 +213,7 @@
                     },
                     "schema": [],
                     "linkedService": {
-                      "name": "a440ad42_79e5_442a_beb0_7f2cc236d699",
+                      "name": "444d9aa5_027e_4c8c_85ac_b08f60d113df",
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
@@ -249,8 +249,8 @@
             }
           ]
         },
-        "name": "ForEach-Table",
-        "description": "Loop over CDC Tables in Source",
+        "name": "ForEach-Row",
+        "description": "Loop over CDC Table in Source",
         "dependsOn": [
           {
             "activity": "usp_cdcSqlBegin",
