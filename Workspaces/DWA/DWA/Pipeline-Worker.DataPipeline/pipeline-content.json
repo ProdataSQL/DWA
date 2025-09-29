@@ -482,25 +482,20 @@
         ]
       },
       {
-        "type": "InvokePipeline",
+        "type": "ExecutePipeline",
         "typeProperties": {
+          "pipeline": {
+            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
+            "type": "PipelineReference"
+          },
           "parameters": {},
-          "waitOnCompletion": true,
-          "workspaceId": "00000000-0000-0000-0000-000000000000",
-          "pipelineId": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
-          "operationType": "InvokeFabricPipeline"
-        },
-        "externalReferences": {
-          "connection": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+          "waitOnCompletion": true
         },
         "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
+          "secureInput": false
         },
         "name": "Get Env Variables",
+        "description": "New Invoke Pipeline doesn't support returnValue",
         "dependsOn": []
       }
     ],
