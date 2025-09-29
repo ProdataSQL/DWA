@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "DataPipeline",
+    "displayName": "Ingest-SQL-CDC"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "f63cc462-5a7f-8e09-431a-9b762b6c88f9"
+  }
+}
