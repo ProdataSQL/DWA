@@ -68,19 +68,17 @@ import sempy.fabric as fabric
 # CELL ********************
 
 # Settings
-workspaces = fabric.list_workspaces()
-
 source_connection_settings = json.loads(SourceConnectionSettings or "{}")
 source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
 source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
-source_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(source_workspace_id, "Unknown")
+source_workspace_name = fabric.resolve_workspace_name(source_workspace_id)
 
 target_connection_settings = json.loads(TargetConnectionSettings or '{}')
 target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
 target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
-target_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
+target_workspace_name = fabric.resolve_workspace_name(target_workspace_id)
 
 target_lakehouse_details=fabric.FabricRestClient().get(f"/v1/workspaces/{target_workspace_id}/lakehouses/{target_lakehouse_id}")
 default_schema=target_lakehouse_details.json().get("properties", {}).get("defaultSchema") # Check if schema is enabled and get default schema

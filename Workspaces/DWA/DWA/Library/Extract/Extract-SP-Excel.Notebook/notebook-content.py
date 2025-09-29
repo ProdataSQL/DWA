@@ -70,7 +70,7 @@ target_connection_settings = json.loads(TargetConnectionSettings or '{}')
 lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
 lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=lakehouse_id, workspace=workspace_id))
-workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(workspace_id, "Unknown")
+workspace_name = fabric.resolve_workspace_name(workspace_id)
 
 source_settings = json.loads(SourceSettings or '{}')
 source_drive_name = source_settings.pop("drive", "documents")

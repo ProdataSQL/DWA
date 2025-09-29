@@ -62,14 +62,14 @@ source_connection_settings = json.loads(SourceConnectionSettings or "{}")
 source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
 source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
-source_workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(source_workspace_id, "Unknown")
+source_workspace_name = fabric.resolve_workspace_name(source_workspace_id)
 source = f"abfss://{source_workspace_id}@onelake.dfs.fabric.microsoft.com/{source_lakehouse_id}/Files"
 
 target_connection_settings = json.loads(TargetConnectionSettings or '{}')
 target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
 target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
-target_workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
+target_workspace_name = fabric.resolve_workspace_name(target_workspace_id)
 client = fabric.FabricRestClient()
 target_lakehouse_details=client.get(f"/v1/workspaces/{target_workspace_id}/lakehouses/{target_lakehouse_id}")
 default_schema=target_lakehouse_details.json().get("properties", {}).get("defaultSchema") # Check if schema is enabled and get default schema
