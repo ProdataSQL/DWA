@@ -165,7 +165,7 @@ for file in files:
         df = df.drop(*existing_columns)   
     row = df.head(1)
     table_directory =f"{schema_name}.schema/{table_name}"
-    table_path = f"abfss://{taget_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{schema_name}/{table_name}"
+    table_path = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{schema_name}/{table_name}"
     full_table_name=f"{schema_name}.{table_name}"
     row_count = df.count()
     print(f"Extracting {row_count} rows into {target_lakehouse_name}.{full_table_name}")
