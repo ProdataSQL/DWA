@@ -6,6 +6,10 @@
         "typeProperties": {
           "source": {
             "type": "SqlServerSource",
+            "sqlReaderQuery": {
+              "value": "@if(\n    or(\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'SELECT'\n        ),\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'EXEC'\n        )\n    ),\n    json(string(pipeline().parameters.SourceSettings)).sourceObject,\n    if(\n        contains(\n            pipeline().parameters.SourceSettings,\n            'selectColumns'\n        ),\n        concat(\n            'SELECT ',\n            json(string(pipeline().parameters.SourceSettings)).selectColumns,\n            ' FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        ),\n        concat(\n            'SELECT * FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        )\n    )\n)",
+              "type": "Expression"
+            },
             "partitionOption": "None",
             "queryTimeout": "02:00:00",
             "additionalColumns": [
@@ -20,39 +24,36 @@
             "datasetSettings": {
               "type": "SqlServerTable",
               "typeProperties": {
-                "schema": {
-                  "value": "@json(string(pipeline().parameters.SourceSettings)).Schema",
-                  "type": "Expression"
-                },
-                "table": {
-                  "value": "@json(string(pipeline().parameters.SourceSettings)).SourceObject",
-                  "type": "Expression"
-                },
                 "database": {
-                  "value": "@json(string(pipeline().parameters.SourceSettings)).Database",
+                  "value": "@json(string(pipeline().parameters.SourceSettings)).database",
                   "type": "Expression"
                 }
               },
               "schema": [],
               "externalReferences": {
-                "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).ConnectionID"
+                "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).connectionId"
               },
               "annotations": []
             }
           },
           "sink": {
             "type": "LakehouseTableSink",
-            "tableActionOption": "OverwriteSchema",
+            "tableActionOption": {
+              "value": "@if(\n  contains(\n    pipeline().parameters.TargetSettings, 'tableActionOption'\n  )\n  ,json(string(pipeline().parameters.TargetSettings)).tableActionOption\n  ,'OverwriteSchema'\n  )",
+              "type": "Expression"
+            },
+            "upsertSettings": {},
             "partitionOption": "None",
+            "applyVOrder": true,
             "datasetSettings": {
               "type": "LakehouseTable",
               "typeProperties": {
                 "schema": {
-                  "value": "@json(string(pipeline().parameters.TargetSettings)).Schema",
+                  "value": "@json(string(pipeline().parameters.TargetSettings)).schema",
                   "type": "Expression"
                 },
                 "table": {
-                  "value": "@json(string(pipeline().parameters.TargetSettings)).Table\n",
+                  "value": "@json(string(pipeline().parameters.TargetSettings)).table\n",
                   "type": "Expression"
                 }
               },
@@ -62,8 +63,8 @@
                 "properties": {
                   "type": "Lakehouse",
                   "typeProperties": {
-                    "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).LakehouseID",
-                    "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).WorkspaceID",
+                    "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).lakehouseId",
+                    "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId",
                     "rootFolder": "Tables"
                   },
                   "annotations": []
@@ -169,28 +170,27 @@
       "SourceSettings": {
         "type": "string",
         "defaultValue": {
-          "Database": "AdventureworksLT",
-          "SourceObject": "Product",
-          "Schema": "SalesLT"
+          "database": "AdventureworksLT",
+          "sourceObject": "SalesLT.Product"
         }
       },
       "TargetSettings": {
         "type": "string",
         "defaultValue": {
-          "Table": "Product",
-          "Schema": "saleslt"
+          "table": "Product",
+          "schema": "saleslt"
         }
       },
       "SourceConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "ConnectionID": "d5909f9f-7ce7-4aca-8da2-ba8bfb057610"
+          "connectionId": "d5909f9f-7ce7-4aca-8da2-ba8bfb057610"
         }
       },
       "TargetConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "LakehouseID": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+          "lakehouseId": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
           "WorkspaceID": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
         }
       },

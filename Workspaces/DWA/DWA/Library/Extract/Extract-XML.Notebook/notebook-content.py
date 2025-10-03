@@ -8,12 +8,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "19785e4d-5572-4ced-bfab-f26e7c5de3ce",
-# META       "default_lakehouse_name": "FabricLH",
-# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
+# META       "default_lakehouse_name": "LH",
+# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "19785e4d-5572-4ced-bfab-f26e7c5de3ce"
+# META           "id": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
 # META         }
 # META       ]
 # META     }
@@ -30,8 +30,8 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"Directory" : "unittest/XML", "File" : "xmlTest.xml"}'
-TargetSettings ='{"TableName" : "xmlTest","SchemaName" : "dbo", "mode":"overwrite" }'
+SourceSettings ='{"directory" : "unittest/XML", "file" : "xmlTest.xml"}'
+TargetSettings ='{"table" : "xmlTest","schema" : "dbo", "mode":"overwrite" }'
 ActivitySettings='''<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text" encoding="UTF-8"/>
   <xsl:template match="/data">
@@ -70,15 +70,31 @@ import os
 import json
 import pandas as pd
 from io import StringIO
+import sempy.fabric as fabric
+
+# Settings
+workspaces = fabric.list_workspaces()
+
+source_connection_settings = json.loads(SourceConnectionSettings or "{}")
+source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
+source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
+source_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(source_workspace_id, "Unknown")
+
+target_connection_settings = json.loads(TargetConnectionSettings or '{}')
+target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
+target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
+target_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
 
 TargetSettings = TargetSettings or "{}"
 SourceSettings = SourceSettings or "{}"
 
-target_settings = json.loads(TargetSettings)
-source_settings = json.loads(SourceSettings)
+target_settings = json.loads(TargetSettings or "{}")
+source_settings = json.loads(SourceSettings or "{}")
 
-source_directory = source_settings["Directory"]
-source_file = source_settings["File"]
+source_directory = source_settings["directory"]
+source_file = source_settings["file"]
 
 FILES_PREFIX = "Files"
 if not source_directory.startswith(FILES_PREFIX):
@@ -88,8 +104,8 @@ LAKEHOUSE_PREFIX = "/lakehouse/default"
 if not source_directory.startswith(LAKEHOUSE_PREFIX):
     source_directory = os.path.join(LAKEHOUSE_PREFIX, source_directory)
 
-target_schema = target_settings.get("SchemaName", "dbo") 
-target_table = target_settings.get("TableName", source_file.split(".")[0])
+target_schema = target_settings.get("schema", "dbo") 
+target_table = target_settings.get("table", source_file.split(".")[0])
 
 if target_schema != "dbo":
     target_table = f"{target_schema}_{target_table}"
@@ -109,6 +125,17 @@ mode = target_settings.get("mode","overwrite")
 
 # CELL ********************
 
+if source_workspace_name==target_workspace_name:
+    print(f"Workspace: {source_workspace_name}")
+    if source_lakehouse_name==target_lakehouse_name:
+        print(f"Lakehouse: {source_lakehouse_name}")
+    else:
+        print(f"Source Lakehouse: {source_lakehouse_name}")
+        print(f"Target Lakehouse: {target_lakehouse_name}")
+else:
+    print(f"Source Workspace: {source_workspace_name}, Lakehouse: {source_lakehouse_name}")
+    print(f"Target Workspace: {target_workspace_name}, Lakehouse: {target_lakehouse_name}")
+    
 xml_data = etree.parse(file_path)
 xslt_stylesheet = etree.XML(ActivitySettings)
 parsed_xml = str(etree.XSLT(xslt_stylesheet)(xml_data))
@@ -124,7 +151,7 @@ if mode == "overwrite":
 
 spark.createDataFrame(df).write.mode(mode).format("delta").saveAsTable(target_table)
 
-print(f"Wrote {row_count} rows from {file_path} to FabricLH.dbo.{target_table}.")
+print(f"Wrote {row_count} rows from {file_path} to {target_schema}.{target_table}.")
 
 # METADATA ********************
 

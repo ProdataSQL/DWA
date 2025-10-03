@@ -2,22 +2,6 @@
   "properties": {
     "activities": [
       {
-        "type": "ExecutePipeline",
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
-            "type": "PipelineReference"
-          },
-          "parameters": {},
-          "waitOnCompletion": true
-        },
-        "policy": {
-          "secureInput": false
-        },
-        "name": "Get Env Variables",
-        "dependsOn": []
-      },
-      {
         "type": "Script",
         "typeProperties": {
           "scripts": [
@@ -105,9 +89,15 @@
                         "type": "PipelineReference"
                       },
                       "parameters": {
-                        "PackageGroup": "@pipeline().parameters.PackageGroup",
-                        "PipelineID": "@pipeline().parameters.PipelineID",
-                        "PipelineSequence": "@item().PipelineSequence"
+                        "PackageGroup": {
+                          "value": "@pipeline().parameters.PackageGroup",
+                          "type": "Expression"
+                        },
+                        "PipelineID": -1,
+                        "PipelineSequence": {
+                          "value": "@item().PipelineSequence",
+                          "type": "Expression"
+                        }
                       },
                       "waitOnCompletion": true
                     },
@@ -179,6 +169,23 @@
             ]
           }
         ]
+      },
+      {
+        "type": "ExecutePipeline",
+        "typeProperties": {
+          "pipeline": {
+            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
+            "type": "PipelineReference"
+          },
+          "parameters": {},
+          "waitOnCompletion": true
+        },
+        "policy": {
+          "secureInput": false
+        },
+        "name": "Get Env Variables",
+        "description": "New Invoke Pipeline doesn't support returnValue",
+        "dependsOn": []
       }
     ],
     "parameters": {
@@ -189,10 +196,6 @@
       "Stage": {
         "type": "string",
         "defaultValue": "ALL"
-      },
-      "PipelineID": {
-        "type": "string",
-        "defaultValue": "-1"
       }
     },
     "variables": {

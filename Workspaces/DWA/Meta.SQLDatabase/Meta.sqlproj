@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build">
-  <Sdk Name="Microsoft.Build.Sql" Version="1.0.0-rc1" />
+  <Sdk Name="Microsoft.Build.Sql" Version="2.0.0-preview.2" />
   <PropertyGroup>
     <Name>Meta</Name>
     <ProjectGuid>{00000000-0000-0000-0000-000000000000}</ProjectGuid>

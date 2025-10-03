@@ -29,8 +29,8 @@
 # PARAMETERS CELL ********************
 
 #See https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html for CSV options
-SourceSettings = '{"Directory" : "unittest/csv/", "File" : "Date_NoHeader.csv", "header":0,"delimiter":",","encoding":"UTF-8"}'
-TargetSettings = '{"TableName":"ZipExample", "SchemaName":"dbo", "mode":"overwrite"}'
+SourceSettings = '{"directory" : "unittest/csv/", "file" : "Date_NoHeader.csv", "header":0,"delimiter":",","encoding":"UTF-8"}'
+TargetSettings = '{"tableName":"ZipExample", "schema":"dbo", "mode":"overwrite"}'
 # all of these are optional and set to their default
 SourceConnectionSettings=None
 TargetConnectionSettings=None
@@ -52,53 +52,81 @@ import json
 from pyspark.sql.functions import lit
 import pandas as pd
 pd.DataFrame.iteritems = pd.DataFrame.items
+import sempy.fabric as fabric
 
 # Your existing settings
-SourceSettings = SourceSettings or "{}"
-TargetSettings = TargetSettings or "{}"
 
-source_settings = json.loads(SourceSettings)
-target_settings = json.loads(TargetSettings)
+workspaces = fabric.list_workspaces()
 
-source_directory = source_settings["Directory"]
-source_file = source_settings["File"]
+source_connection_settings = json.loads(SourceConnectionSettings or "{}")
+source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
+source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
+source_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(source_workspace_id, "Unknown")
 
-del(source_settings["Directory"])
-del(source_settings["File"])
+target_connection_settings = json.loads(TargetConnectionSettings or '{}')
+target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
+target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
+target_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
 
+target_lakehouse_details=fabric.FabricRestClient().get(f"/v1/workspaces/{target_workspace_id}/lakehouses/{target_lakehouse_id}")
+default_schema=target_lakehouse_details.json().get("properties", {}).get("defaultSchema") # Check if schema is enabled and get default schema
 
-target_schema = target_settings.get("SchemaName", "dbo") 
-target_table = target_settings.get("TableName", source_file.split(".")[0])
+source_settings = json.loads(SourceSettings or "{}")
+source_directory = source_settings["directory"]
+source_file = source_settings["file"]
+del source_settings["directory"]
+del source_settings["file"]
 
+source = os.path.join(f"abfss://{source_workspace_id}@onelake.dfs.fabric.microsoft.com/{source_lakehouse_id}/Files",source_directory) 
+
+target_settings = json.loads(TargetSettings or "{}")
+target_schema = target_settings.get("schema", "dbo") 
+target_table = target_settings.get("table", source_file.split(".")[0])
 if target_schema != "dbo":
     target_table = f"{target_schema}_{target_table}"
+write_mode = target_settings.get("mode", "overwrite")
 
+target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{target_schema}"
 
-FILES_PREFIX = "Files/"
-if not source_directory.startswith(FILES_PREFIX):
-   source_directory = os.path.join(FILES_PREFIX, source_directory)
+# METADATA ********************
 
-LAKEHOUSE_PREFIX = "/lakehouse/default/"
-source_directory = os.path.join(LAKEHOUSE_PREFIX, source_directory)
-mode = target_settings.get("mode", "append")
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
 
-# Extract file  
-file_path = os.path.join(source_directory, source_file)
+# CELL ********************
 
+if source_workspace_name==target_workspace_name:
+    print(f"Workspace: {source_workspace_name}")
+    if source_lakehouse_name==target_lakehouse_name:
+        print(f"Lakehouse: {source_lakehouse_name}")
+    else:
+        print(f"Source Lakehouse: {source_lakehouse_name}")
+        print(f"Target Lakehouse: {target_lakehouse_name}")
+else:
+    print(f"Source Workspace: {source_workspace_name}, Lakehouse: {source_lakehouse_name}")
+    print(f"Target Workspace: {target_workspace_name}, Lakehouse: {target_lakehouse_name}")
+
+# Extract file
+ 
+file_path = os.path.join(source, source_file)
+#print(f"source_settings: {source_settings}")
 df = pd.read_csv(file_path, **source_settings)    
 row_count = df.shape[0]
 spark_df = spark.createDataFrame(df)
-
 # Add 'FileName' and 'LineageKey' columns
 spark_df = spark_df.withColumn("FileName", lit(source_file))
 spark_df = spark_df.withColumn("LineageKey", lit(LineageKey))
 
-
-if mode == "overwrite":
-    spark.sql(f"DROP TABLE IF EXISTS {target_table}")
-# Write to LH in the specified mode (mode is already set)
-spark_df.write.mode(mode).format("delta").saveAsTable(target_table)
-print(f"Wrote {row_count} rows from '{file_path[19:]}' to FabricLH.dbo.{target_table}")
+table_path = os.path.join(target, target_table)
+if write_mode=="overwrite":
+        spark_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(table_path)
+else:
+    spark_df.write.mode(mode).format("delta").saveAsTable(table_path)
+print(f"Wrote {row_count} rows from '/Files/{file_path.split('/Files/')[-1]}' to /Tables/{target_schema}/{target_table}")
 
 # METADATA ********************
 

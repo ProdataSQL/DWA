@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "23b4778e-2b63-4b23-b31a-8e4ca89d070a",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "4ec94a72-6477-4dbf-b0c7-516a0e68477f"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -22,19 +27,18 @@
 # Format of parquet must have __rowmarker__ as per<BR>  https://learn.microsoft.com/en-us/fabric/database/mirrored-database/open-mirroring-landing-zone-format#format-requirements<BR>
 # <BR>
 # Folder layout must be as per Fabric Open Mirror standard with Databases Added:
-# - /LandingZone/TableA
-# - /LandingZone/TableB
+# - /LandingZone/SchemaA.schema/TableA
+# - /LandingZone/SchemaB.schema/TableB
 
 
 # PARAMETERS CELL ********************
 
-SourceSettings = '{"Directory":"/LandingZone"}'
-TargetSettings = '{"cdcTable":"sqlcdcTables"}'
-SourceConnectionSettings = '{"Lakehouse":"LH","LakehouseID":"23b4778e-2b63-4b23-b31a-8e4ca89d070a","WorkspaceID":"4ec94a72-6477-4dbf-b0c7-516a0e68477f"}'
-TargetConnectionSettings = '{"Lakehouse":"LH","LakehouseID":"23b4778e-2b63-4b23-b31a-8e4ca89d070a","WorkspaceID":"4ec94a72-6477-4dbf-b0c7-516a0e68477f"}'
+SourceSettings = None #'{"sqlTables":"config.auditSqlTables", "schema":"aw"}'
+TargetSettings = None #'{"commitSproc":"config.usp_auditSqlCommit"}'
+SourceConnectionSettings = None
+TargetConnectionSettings = None
 ActivitySettings = None
 LineageKey = '00000000-0000-0000-0000-000000000000'
-
 
 # METADATA ********************
 
@@ -46,7 +50,6 @@ LineageKey = '00000000-0000-0000-0000-000000000000'
 # CELL ********************
 
 %run SQL-Connection-Shared-Functions
-
 
 # METADATA ********************
 
@@ -64,26 +67,23 @@ import sempy.fabric as fabric
 from datetime import datetime
 from delta.tables import DeltaTable
 import pandas as pd
-source_settings = json.loads(SourceSettings or '{}')
-source_connection_settings = json.loads(SourceConnectionSettings or '{}')
-target_settings = json.loads(TargetSettings or '{}')
-target_connection_settings = json.loads(TargetConnectionSettings or '{}')
 activity_settings = json.loads(ActivitySettings or '{}')
-workspace_id = source_connection_settings['WorkspaceID']
-lakehouse_id = source_connection_settings['LakehouseID']
-directory = source_settings.pop("Directory","\LandingZone")
-target_workspace_id = source_connection_settings['WorkspaceID']
-lakehouse_name = fabric.resolve_item_name(item_id=lakehouse_id, workspace=workspace_id)
-cdc_table  = target_settings.pop("cdcTable")
-client = fabric.FabricRestClient()
-lakehouse_details=client.get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}")
-default_lakehouse_schema=lakehouse_details.json().get("properties", {}).get("defaultSchema")
-items = client.get(f"/v1/workspaces/{target_workspace_id}/SqLDatabases").json()["value"]
-sql_database=next((endpoint for endpoint in items if endpoint["displayName"] == "Meta"))
-sql_end_point = sql_database["properties"]["serverFqdn"]
-sql_database_name = sql_database["properties"]["databaseName"]
-connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_point};database={sql_database_name}"
-
+source_connection_settings = json.loads(SourceConnectionSettings or '{}')
+source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
+source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
+source_workspace_name = fabric.resolve_workspace_name(source_workspace_id)
+target_connection_settings = json.loads(TargetConnectionSettings or '{}')
+target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
+target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
+target_workspace_name = fabric.resolve_workspace_name(target_workspace_id)
+source_settings = json.loads(SourceSettings or '{}')
+cdc_sql_table = source_settings.get('sqlTables','config.cdcSqlTables')
+schema = source_settings.get('schema')
+tables = source_settings.get('sqlTables','config.cdcSqlTables')
+target_settings = json.loads(TargetSettings or '{}')
+commit_sproc = target_settings.get('commitSproc','config.usp_cdcSqlCommit')
 
 # METADATA ********************
 
@@ -94,43 +94,68 @@ connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_p
 
 # CELL ********************
 
+if source_workspace_name==target_workspace_name:
+    print(f"Workspace: {source_workspace_name}")
+    if source_lakehouse_name==target_lakehouse_name:
+        print(f"Lakehouse: {source_lakehouse_name}")
+    else:
+        print(f"Source Lakehouse: {source_lakehouse_name}")
+        print(f"Target Lakehouse: {target_lakehouse_name}")
+else:
+    print(f"Source Workspace: {source_workspace_name}, Lakehouse: {source_lakehouse_name}")
+    print(f"Target Workspace: {target_workspace_name}, Lakehouse: {target_lakehouse_name}")
+client = fabric.FabricRestClient()
+items = client.get(f"/v1/workspaces/{source_workspace_id}/SqLDatabases").json()["value"]
+sql_database=next((endpoint for endpoint in items if endpoint["displayName"] == "Meta"))
+sql_end_point = sql_database["properties"]["serverFqdn"]
+sql_database_name = sql_database["properties"]["databaseName"]
+connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_point};database={sql_database_name}"
 spark.conf.set("spark.sql.parquet.int96RebaseModeInRead", "LEGACY") #Needed if dates below 1800
 spark.conf.set("spark.sql.parquet.datetimeRebaseModeInWrite", "LEGACY")
-files_path = f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{lakehouse_id}/Files/{directory}"
+files_path = f"abfss://{source_workspace_id}@onelake.dfs.fabric.microsoft.com/{source_lakehouse_id}/Files/LandingZone"
 operation ="overwrite"
 engine = create_engine(connection_string)
 sql_connection = engine.raw_connection()
 batch_start_time = datetime.now()
 with engine.connect() as alchemy_connection:
-    tables = pd.read_sql_query ("exec config.usp_cdcSqlTables", alchemy_connection) #List of cdcTables and PrimaryKeys (Required for Merge on non-standard Keys)
+    tables = pd.read_sql_query(f"exec config.usp_cdcSqlTables '{source_lakehouse_name}', '{cdc_sql_table}'", alchemy_connection)
+folders_to_process = []
+if schema:
+    schema_folder = f"{schema}.schema"
+    for folder in notebookutils.fs.ls(files_path):
+        folder_name = folder.path.split("/")[-1]
+        if folder_name == schema_folder:
+            folders_to_process.append(folder)
+            break  # Found the specific schema folder
+else:
+    folders_to_process = list(notebookutils.fs.ls(files_path))  
 files = []
-for folder in notebookutils.fs.ls(files_path):
-    files.extend (sorted([x.path for x in notebookutils.fs.ls(folder.path) if not x.isDir]))
+for folder in folders_to_process:
+    for subfolder in notebookutils.fs.ls(folder.path):
+        if subfolder.isDir:
+            files.extend(
+                sorted([x.path for x in notebookutils.fs.ls(subfolder.path) if not x.isDir])
+            )
 for file in files:
     t = datetime.now()
     file_path =file
-    base_table_name= file.split('/')[-1].removesuffix('.parquet')
-    schema_name, table_name = (base_table_name.split('.') + [None])[:2][::-1]
-    table_df = tables[tables['Table'] == base_table_name]   #Retrieve Primary Key from the cdcSqlTables
+    file_name= file.split('/')[-1]
+    table_name= file.split('/')[-2]
+    schema_name=file.split('/')[-3].removesuffix('.schema')
+    table_df = tables[tables['Table'].str.endswith(f'.{table_name}', na=False)]
     primary_keys = table_df ['PrimaryKeys'].iloc[0] if not table_df.empty else None
+    source_table = table_df['Table'].iloc[0] if not table_df.empty else None   
     df = spark.read.parquet(file_path ) 
     cdc_columns = ["__$start_lsn", "__$seqval", "__$operation", "__$update_mask"]
     existing_columns = [col for col in cdc_columns if col in df.columns]
     if existing_columns:
         df = df.drop(*existing_columns)   
     row = df.head(1)
-    if '.' in base_table_name:
-            schema_name, table_name = base_table_name.split('.', 1)
-    else:
-        table_name=base_table_name
-    if not schema_name: 
-        schema_name = default_lakehouse_schema
-    if schema_name:
-            table_name =base_table_name.split(".")[-1]
-            table_name =f"{schema_name}/{table_name}"
-    
-    table_name = re.sub(r'_(\d{14})$', '', table_name)   #Strip timestamp if present
-    table_path = f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{lakehouse_id}/Tables/{table_name}"
+    table_directory =f"{schema_name}.schema/{table_name}"
+    table_path = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{schema_name}/{table_name}"
+    full_table_name=f"{schema_name}.{table_name}"
+    row_count = df.count()
+    print(f"Extracting {row_count} rows into {target_lakehouse_name}.{full_table_name}")
     if row: 
         if "__rowMarker__" not in df.columns:
             raise Exception(f"File {file_path } does not contain the __rowMarker__ column. See https://learn.microsoft.com/en-us/fabric/database/mirrored-database/open-mirroring-landing-zone-format#format-requirements")
@@ -143,28 +168,29 @@ for file in files:
             if primary_keys is None:
                 keys = [df.columns[0]]  
             else:
-                keys = [key.strip() for key in primary_keys.split(',')]  # Split and clean keys
+                keys = [key.strip('[], ') for key in primary_keys.split(',')]   # Split and clean keys
             merge_condition = ' AND '.join([f'target.{key} = source.{key}' for key in keys])        
             sink_df = DeltaTable.forPath(spark, table_path)
             sink_df.alias("target").merge(df.alias("source"), merge_condition).whenNotMatchedInsertAll().whenMatchedUpdateAll().execute()
-        print(f"\t- {operation} for {base_table_name}=>{table_name} {(datetime.now() - t).total_seconds():.1f} seconds")
-    sql = 'exec config.usp_cdcSqlCommit @Table=?'
-    table_name=table_name.replace('/', '.')
-    values = (f"{table_name}",)
+        print(f"\t- {operation} for {source_table}=>{schema_name}.{table_name} {(datetime.now() - t).total_seconds():.1f} seconds")
+    sql = f'exec {commit_sproc} @Table=?'
+    values = (f"{source_table}",)
     cursor = sql_connection.cursor()
     cursor.execute(sql, values)
     sql_connection.commit()
     notebookutils.fs.rm(file_path, recurse=False)
-#Remove Empty Folders
-subfolders = [f.path for f in mssparkutils.fs.ls(files_path) if f.isDir]
-for folder in subfolders:
-    if all(map(lambda i: i.isDir, mssparkutils.fs.ls(folder))):
-        mssparkutils.fs.rm(folder, True)
-duration_secs=(datetime.now()-batch_start_time).total_seconds()
+# Remove Empty Folders - only for processed schemas
+for processed_folder in folders_to_process:
+    subfolders = [f.path for f in mssparkutils.fs.ls(processed_folder.path) if f.isDir]
+    for folder in subfolders:
+        folder_contents = mssparkutils.fs.ls(folder)
+        if not folder_contents or all(item.isDir for item in folder_contents):
+            mssparkutils.fs.rm(folder, True)
+            print(f"Removed empty folder: {source_lakehouse_name}/Files/{folder.split('/Files/')[1]}")
+duration_secs = (datetime.now() - batch_start_time).total_seconds()
 print (f"Total Batch Time: {int(duration_secs // 60)} min and {int(duration_secs % 60)} sec. {len(files)} files. {duration_secs/(len(files) if len(files) else 1)} seconds per file.")
 #Cleanup
 sql_connection.close()
-
 
 # METADATA ********************
 

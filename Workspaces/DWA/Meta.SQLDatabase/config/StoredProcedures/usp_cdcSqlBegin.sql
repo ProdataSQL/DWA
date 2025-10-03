@@ -3,41 +3,58 @@
     Log Target LSN amd Traget Datetime 
     Test: 
         exec config.usp_cdcSqlBegin
-    History:    15/06/2025 Bob, Created           
+    History:    15/06/2025 Bob, Created   
+                10/07/2025 Kristan, Added ConfigurationID
 
 */
-CREATE   PROCEDURE [config].[usp_cdcSqlBegin]
+CREATE PROCEDURE [config].[usp_cdcSqlBegin]
 (
-    @ConnectionID varchar(50)	='8a10eff2-cdcc-4b00-a2ef-35bae56d7ef2'
-	,@Database sysname			='HICPStoreOne'
-    ,@target_lsn varchar(50)	='0x0005E0CA0006EDD90040'
-    ,@target_datetime varchar(50) =  '2025-06-15T20:21:40.757Z'
-	,@Table sysname				=null /* Optional if Just One Table */
+    @connectionId varchar(50) = '8a10eff2-cdcc-4b00-a2ef-35bae56d7ef2',
+    @database sysname = 'HICPStoreOne',
+    @target_lsn varchar(50) = '0x0005E0CA0006EDD90040',
+    @target_datetime varchar(50) = '2025-06-15T20:21:40.757Z',
+    @table sysname = null -- Optional if Just One Table
 )
 AS
 BEGIN
-    SET NOCOUNT ON
-    DECLARE @target_datetime2 datetime2(7)
-    DECLARE @target_lsn_bin binary(10) 
-    SELECT @target_datetime2= CONVERT(datetime2(2),@target_datetime), @target_lsn_bin = CONVERT (binary(10),  @target_lsn,1)
+    SET NOCOUNT ON;
 
-	UPDATE config.cdcSqlTables
-	SET target_lsn      = @target_lsn_bin,	target_datetime = @target_datetime2
-	WHERE ConnectionID=@ConnectionID
-	AND [Database]=@Database
-	and ([Table]=@Table or @Table is null)
-	and Enabled=1
+    DECLARE @target_datetime2 datetime2(7);
+    DECLARE @target_lsn_bin binary(10);
+    DECLARE @ConfigurationID int;
 
+    SELECT 
+        @target_datetime2 = CONVERT(datetime2(2), @target_datetime),
+        @target_lsn_bin = CONVERT(binary(10), @target_lsn, 1);
 
-	SELECT [Database], [Table], convert(varchar(50),max_lsn,1) as from_lsn , max_datetime as from_datetime, convert(varchar(50),target_lsn,1) as to_lsn, target_datetime as to_datetime, PrimaryKeys
-	FROM config.cdcSqlTables
-	WHERE ConnectionID=@ConnectionID
-	AND [Database]=@Database
-	and ([Table]=@Table or @Table is null)
-	and Enabled=1
+    -- Get ConfigurationID from config.Configuration using ConnectionID
+    SELECT @ConfigurationID = ConfigurationID
+    FROM config.Configurations
+    WHERE JSON_VALUE(ConnectionSettings, '$.connectionId') = @connectionId;
 
-  
-END
+   
+    UPDATE config.cdcSqlTables
+    SET target_lsn = @target_lsn_bin,
+        target_datetime = @target_datetime2
+    WHERE ConfigurationID = @ConfigurationID
+      AND [Database] = @database
+      AND (@table IS NULL OR [table] = @table)
+      AND Enabled = 1;
+
+    SELECT 
+        [Database], 
+        [Table], 
+        CONVERT(varchar(50), max_lsn, 1) AS from_lsn,
+        max_datetime AS from_datetime,
+        CONVERT(varchar(50), target_lsn, 1) AS to_lsn,
+        target_datetime AS to_datetime,
+        PrimaryKeys
+    FROM config.cdcSqlTables
+    WHERE ConfigurationID = @ConfigurationID
+      AND [Database] = @database
+      AND (@table IS NULL OR [Table] = @table)
+      AND Enabled = 1;
+END;
 
 GO
 

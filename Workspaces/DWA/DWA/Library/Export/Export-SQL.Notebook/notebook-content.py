@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
-# META       "default_lakehouse_name": "FabricLH",
-# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
+# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
+# META       "default_lakehouse_name": "LH",
+# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -23,13 +28,12 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"SourceObject":"FabricDW.config.Configurations"}'
-TargetSettings ='{"Directory": "export/parquet", "File":"Configurations.parquet"}'
-SourceConnectionSettings=None
-TargetConnectionSettings=None
-ActivitySettings=None
+SourceSettings = '{"sourceObject":"LH.aw_stg.account"}'
+TargetSettings = '{"directory": "export/parquet", "file":"account.parquet"}'
+SourceConnectionSettings = None
+TargetConnectionSettings = None
+ActivitySettings = None
 LineageKey = 0
-
 
 # METADATA ********************
 
@@ -63,35 +67,53 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, NullType
 
+workspaces = fabric.list_workspaces()
+
+source_connection_settings = json.loads(SourceConnectionSettings or "{}")
+source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
+source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
+source_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(source_workspace_id, "Unknown")
+
+target_connection_settings = json.loads(TargetConnectionSettings or '{}')
+target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
+target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
+target_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
+
+source_settings = json.loads(SourceSettings or '{}')
+source_object = source_settings.get("sourceObject")
+
+target_settings = json.loads(TargetSettings or '{}')
+target_directory = target_settings.pop("directory")
+target_file = target_settings.pop("file",source_object.split(".")[-1]) 
+target_file_type = target_settings.pop("fileType", "infer").lower()
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+if source_workspace_name==target_workspace_name:
+    print(f"Workspace: {source_workspace_name}")
+    if source_lakehouse_name==target_lakehouse_name:
+        print(f"Lakehouse: {source_lakehouse_name}")
+    else:
+        print(f"Source Lakehouse: {source_lakehouse_name}")
+        print(f"Target Lakehouse: {target_lakehouse_name}")
+else:
+    print(f"Source Workspace: {source_workspace_name}, Lakehouse: {source_lakehouse_name}")
+    print(f"Target Workspace: {target_workspace_name}, Lakehouse: {target_lakehouse_name}")
+
 EXCEL_FILE_TYPES = ('.xlsx')
 CSV_FILE_TYPES = ('.csv', '.txt')
 DELTA_FILE_TYPES = ('')
 PARQUET_FILE_TYPES = ('.parquet')
-
-
-SourceSettings = SourceSettings or '{}'
-TargetSettings = TargetSettings or '{}'
-
-source_settings = json.loads(SourceSettings)
-target_settings = json.loads(TargetSettings)
-
-
-
-target_directory = target_settings["Directory"]
-target_file = target_settings["File"]
-target_file_type = target_settings.pop("FileType", "infer").lower()
-
-FILES_PREFIX = "Files"
-LAKEHOUSE_DEFAULT_PREFIX = "/lakehouse/default/"
-if not target_directory.startswith(FILES_PREFIX):
-   target_directory = os.path.join(FILES_PREFIX, target_directory).replace("\\", "/")
-
-target_path = os.path.join(target_directory, target_file)
-
-temp_target_path = os.path.join(target_directory, f"_{target_file}")
-
-del target_settings["Directory"]
-del target_settings["File"]
 
 if target_file_type == 'infer':
     file_base, file_extension = os.path.splitext(target_file)
@@ -112,23 +134,11 @@ is_delta = target_file_type.lower() == 'delta'
 is_excel = target_file_type.lower() == 'excel'
 is_parquet = target_file_type.lower() == 'parquet'
 
-
-
-tenant_id=spark.conf.get("trident.tenant.id")
-workspace_id=spark.conf.get("trident.workspace.id")
-lakehouse_id=spark.conf.get("trident.lakehouse.id")
-lakehouse_name=spark.conf.get("trident.lakehouse.name")
-sql_end_point= fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}").json()['properties']['sqlEndpointProperties']['connectionString']
-connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_point}"
-pattern = '[ ,;{}()\n\t/=]'
-
+source_sql_end_point= fabric.FabricRestClient().get(f"/v1/workspaces/{source_workspace_id}/lakehouses/{source_lakehouse_id}").json()['properties']['sqlEndpointProperties']['connectionString']
+source_connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={source_sql_end_point}"
 
 # List Datasets from meta data
-engine = create_engine(connection_string)
-
-
-
-source_object = source_settings.get("SourceObject")
+source_engine = create_engine(source_connection_string)
 
 if "usp_" in source_object.lower() and not source_object.lower().startswith("exec"): # sproc without EXEC
     query = f"EXEC {source_object}"
@@ -146,12 +156,14 @@ if is_csv and "escape" not in target_settings:
 with engine.connect() as alchemy_connection:
     df = pd.read_sql_query(query, alchemy_connection)
 
-lh_target_directory = os.path.join(LAKEHOUSE_DEFAULT_PREFIX, target_directory)
-lh_target_path = os.path.join(lh_target_directory, target_file)
+target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Files"
+target_path = os.path.join(target, target_directory, target_file)
+temp_target_path = os.path.join(target, target_directory, f"_{target_file}")
 
-if not os.path.exists (target_directory) and is_excel or is_delta:
-    os.makedirs(target_directory)
+lh_target_directory = os.path.join(target, target_directory)
 
+if not os.path.exists (lh_target_directory):
+    os.makedirs(lh_target_directory)
 
 if target_file_type in ('csv', 'delta'):
     spark_df = spark.createDataFrame(df)
@@ -173,15 +185,14 @@ if target_file_type in ('csv', 'delta'):
                 break
         mssparkutils.fs.rm(temp_target_path, True)
 elif is_excel:
-    df.to_excel(lh_target_path,**target_settings)
+    df.to_excel(target_path,**target_settings)
 elif is_parquet:
 
-    df.to_parquet(lh_target_path,**target_settings)
+    df.to_parquet(target_path,**target_settings)
 else:
     raise ValueError(f"Unsupported file type: {target_file_type}" )
 
-print(f"'{query}' exported to '{target_path}'")
-
+print(f"'{query}' exported to '/Files/{target_directory}'")
 
 # METADATA ********************
 

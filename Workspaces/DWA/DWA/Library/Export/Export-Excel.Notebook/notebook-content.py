@@ -28,8 +28,8 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"Query":"EXEC FabricDW.config.[usp_PipelineQueue] @PipelineID=2"}'
-TargetSettings ='{"Directory": "Export/excel", "File": "PipelineQueue.xlsx", "header":"False"}'
+SourceSettings ='{"object":"EXEC FabricDW.config.[usp_PipelineQueue] @PipelineID=2"}'
+TargetSettings ='{"directory": "Export/excel", "file": "PipelineQueue.xlsx", "header":"False"}'
 SourceConnectionSettings = None
 TargetConnectionSettings = None
 ActivitySettings = None
