@@ -91,6 +91,22 @@ ActivitySettings={"model":"gpt-4.1","instructions":"You are a specialized data e
 
 # CELL ********************
 
+SourceSettings = "{\"Directory\":\"landing/ai/invoices/pdf/\",\"File\":\"*.pdf\"}"
+TargetSettings = "{\"SchemaName\":\"ai\",\"TableName\":\"invoice1\"}"
+ActivitySettings = "{\"model\":\"gpt-4.1\",\"instructions\":\"You are a specialized data extraction assistant for invoices\",\"input\":\"Extract These Fields and return a single json object:Supplier : Customer, InvoiceNo, OrderNo, InvoiceDate, DueDate, Items: {Json Array of items on Invoice with attributes: description, Qty, Price, SubTotal}, Tax, Total,PaymentTerms,Valid: Return yes if the sum of the SubTotals equals the total on the invoice,Sector: Return the Industry Sector for the Supplier or Services\",\"temperature\":0.3}"
+SourceConnectionSettings = "{\"api_family\":\"responses\",\"api_provider\":\"openai\",\"ai_secret\":\"openai-key\",\"KeyVault\":\"https://dw-training-kv.vault.azure.net/\"}"
+TargetConnectionSettings = "{\"lakehouse\":\"LH\",\"lakehouseId\":\"d58f4f2d-59d7-406d-ae4c-898354a6a75f\",\"workspaceId\":\"5941a6c0-8c98-4d79-b065-a3789e9e0960\"}"
+LineageKey = "9806122a-898d-4918-95a2-41e8c1bc31da"
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
 import json
 import os
 import re
@@ -359,10 +375,6 @@ if table_layout == "multiple":
     parent_df=df
     child_obj={}
     array_cols = [f.name for f in df.schema.fields if 'array' in f.dataType.simpleString()]
-    items_df = (
-        parent_df
-        .select("id", F.explode_outer("Items").alias("item"))
-    )
     for item in array_cols:
         keys = (
             parent_df
@@ -414,19 +426,20 @@ if child_obj:
         else:
             elapsed = time.time() - doc_start_time
 
-#Arechive Files if needed
-for index, row in files_df.iterrows(): 
-    file_name = row["FileName"]
-    file_path = os.path.join(source_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
-    processed_file_path = os.path.join(processed_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
-    if notebookutils.fs.exists(file_path) and processed_directory:
+#Archive Files if needed
+if source_directory and processed_directory:
+    for index, row in files_df.iterrows(): 
+        file_name = row["FileName"]
+        file_path = os.path.join(source_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
         processed_file_path = os.path.join(processed_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
-        if notebookutils.fs.exists(processed_file_path):
-            notebookutils.fs.rm(processed_file_path)
-        if delete:
-            notebookutils.fs.mv(file_path, processed_file_path, True, True)
-        else:
-            notebookutils.fs.cp(file_path, processed_file_path, True)
+        if notebookutils.fs.exists(file_path) and processed_directory:
+            processed_file_path = os.path.join(processed_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
+            if notebookutils.fs.exists(processed_file_path):
+                notebookutils.fs.rm(processed_file_path)
+            if delete:
+                notebookutils.fs.mv(file_path, processed_file_path, True, True)
+            else:
+                notebookutils.fs.cp(file_path, processed_file_path, True)
 
 print ('')
 elapsed = time.time() - start_time

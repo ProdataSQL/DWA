@@ -2,10 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "AI Function Test"
+    "displayName": "Extract-AI-LH",
+    "description": "New notebook"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "6a22dc5b-179b-987c-48cd-1b4019d68fc1"
+    "logicalId": "8482a0b9-7d68-9117-46f8-94d1c31818ac"
   }
 }
