@@ -359,10 +359,6 @@ if table_layout == "multiple":
     parent_df=df
     child_obj={}
     array_cols = [f.name for f in df.schema.fields if 'array' in f.dataType.simpleString()]
-    items_df = (
-        parent_df
-        .select("id", F.explode_outer("Items").alias("item"))
-    )
     for item in array_cols:
         keys = (
             parent_df
@@ -414,19 +410,20 @@ if child_obj:
         else:
             elapsed = time.time() - doc_start_time
 
-#Arechive Files if needed
-for index, row in files_df.iterrows(): 
-    file_name = row["FileName"]
-    file_path = os.path.join(source_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
-    processed_file_path = os.path.join(processed_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
-    if notebookutils.fs.exists(file_path) and processed_directory:
+#Archive Files if needed
+if source_directory and processed_directory:
+    for index, row in files_df.iterrows(): 
+        file_name = row["FileName"]
+        file_path = os.path.join(source_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
         processed_file_path = os.path.join(processed_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
-        if notebookutils.fs.exists(processed_file_path):
-            notebookutils.fs.rm(processed_file_path)
-        if delete:
-            notebookutils.fs.mv(file_path, processed_file_path, True, True)
-        else:
-            notebookutils.fs.cp(file_path, processed_file_path, True)
+        if notebookutils.fs.exists(file_path) and processed_directory:
+            processed_file_path = os.path.join(processed_directory[len(LAKEHOUSE_DEFAULT_PREFIX):], file_name)
+            if notebookutils.fs.exists(processed_file_path):
+                notebookutils.fs.rm(processed_file_path)
+            if delete:
+                notebookutils.fs.mv(file_path, processed_file_path, True, True)
+            else:
+                notebookutils.fs.cp(file_path, processed_file_path, True)
 
 print ('')
 elapsed = time.time() - start_time

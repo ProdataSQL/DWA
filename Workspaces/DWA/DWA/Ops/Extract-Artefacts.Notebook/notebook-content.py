@@ -91,18 +91,6 @@ df=df.rename(columns=dict(zip(df.columns, [re.sub(pattern, '_', col.strip(patter
 
 # CELL ********************
 
-#Write to  Lakehouse
-spark.createDataFrame(df).write.mode("overwrite").saveAsTable("dict_artefacts")
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
 #Write Back to Meta SqlDatabase (used for DWA Engine)
 from sqlalchemy import text
 with engine.begin() as alchemy_connection:
