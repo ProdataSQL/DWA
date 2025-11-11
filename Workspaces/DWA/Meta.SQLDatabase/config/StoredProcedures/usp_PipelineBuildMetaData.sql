@@ -9,6 +9,7 @@ History:
 	10/03/2024	Kristan, added SessionTag
 	25/04/2025	Kristan, added LakehouseConnectionSettings
 	29/06/2025  Bob, Added support for multiple workspaces for Templates
+	09/11/2025  Bob, Added suport for ai.Prompts
 */
 CREATE PROC [config].[usp_PipelineBuildMetaData]
 @PipelineID int =null
@@ -107,7 +108,7 @@ BEGIN
 			  ,@Enabled = CASE WHEN p.Enabled = 0 OR pg.Enabled = 0 THEN 0 ELSE 1 END
 			  ,@Stage = COALESCE(pg.Stage, p.Stage)
 			  ,@StartDateTime = GETDATE()
-			  ,@ActivityType = CASE WHEN LEFT(LTRIM(COALESCE(p.ActivitySettings, pg.ActivitySettings)),1) = '{' THEN 'JSON' WHEN LEFT(LTRIM(COALESCE(p.ActivitySettings, pg.ActivitySettings)),1) = '<' THEN 'XML' ELSE 'OTHER' END
+			  ,@ActivityType = CASE WHEN LEFT(LTRIM(COALESCE(p.ActivitySettings, pg.ActivitySettings)),1) = '{' and p.PromptID is null  THEN 'JSON' WHEN LEFT(LTRIM(COALESCE(p.ActivitySettings, pg.ActivitySettings)),1) = '<' THEN 'XML' ELSE 'OTHER' END
 			  ,@TemplateType= t.ArtefactType
 			  ,@ID=a.artefact_id
 			  ,@TableID = p.TableID

@@ -42,9 +42,9 @@
               "value": "@if(\n  contains(\n    pipeline().parameters.TargetSettings, 'tableActionOption'\n  )\n  ,json(string(pipeline().parameters.TargetSettings)).tableActionOption\n  ,'OverwriteSchema'\n  )",
               "type": "Expression"
             },
+            "applyVOrder": true,
             "upsertSettings": {},
             "partitionOption": "None",
-            "applyVOrder": true,
             "datasetSettings": {
               "type": "LakehouseTable",
               "typeProperties": {
@@ -59,7 +59,7 @@
               },
               "schema": [],
               "linkedService": {
-                "name": "75d4ebf8_bfa8_472b_8c5d_36bcb00f3e23",
+                "name": "3076a8b4_b5cf_47f7_b8c9_02f486b6230a",
                 "properties": {
                   "type": "Lakehouse",
                   "typeProperties": {
@@ -124,7 +124,7 @@
               "workspaceId": "00000000-0000-0000-0000-000000000000"
             },
             "externalReferences": {
-              "connection": "935d976f-470e-42dc-9ee1-97ef97a281a4"
+              "connection": "51ba5474-a810-44e4-9a9e-fbcc7892954f"
             },
             "annotations": []
           }
