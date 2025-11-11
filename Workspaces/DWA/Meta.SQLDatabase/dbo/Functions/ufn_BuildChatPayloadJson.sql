@@ -7,7 +7,7 @@ https://platform.openai.com/docs/api-reference/responses
 History: 06/11/2025, Bob, Completed
 
 */
-CREATE   FUNCTION [dbo].[ufn_BuildChatPayloadJson](
+CREATE  FUNCTION [dbo].[ufn_BuildChatPayloadJson](
     @model varchar(4000)=null
 	,@api_family varchar (4000) = 'chat' /* chat | responses */
     ,@instructions varchar(max)=null
