@@ -1,0 +1,15 @@
+model 40260e6c-1a55-4ff7-a194-9c7474fb4e83
+	culture: en-US
+	collation: Latin1_General_100_CI_AS_KS_WS_SC_UTF8
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["exec_sessions_history","Currency","Date","DepartmentGroup","Finance","Scenario","AccountRange","AccountRangeRules","Organization","Account","Department","reports.DimAccount","reports.DimDate","reports.DimDepartmentGroup","reports.DimOrganization","reports.DimScenario","reports.FactFinance","FinancialReport","General Ledger","reports.ReportAccountMap","aw_int.Account","exec_requests_history","long_running_queries","frequently_run_queries","FactFinance","DimAccount","DimOrganization","Account_Staging","DimScenario","ReportAccountMap","DimDate","DimDepartmentGroup","DimCurrency","DimAccount_staging"]
+
+annotation SourceLineageTagType = DatabaseFullyQualifiedName
+

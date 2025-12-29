@@ -19,6 +19,7 @@ History:
 	16/04/2025 Kristan, Hash identity method fix
 	01/05/2025 Shruti,  Added Collation checks to manage Case-sensitivity.
 	26/08/2025 Kristan, Issue with integers passed as Bks for identity method.
+	12/11/2025 Bob, Fixed Issue with SQL Size > 8000 chars
 
 */
 CREATE   PROC [dwa].[usp_TableLoad] @TargetObject [nvarchar](512) =NULL, @TableID [int]= NULL, @RunID uniqueidentifier = NULL AS
@@ -86,8 +87,8 @@ BEGIN
 		, @MaxIdentity int = 0
 		, @SourcePrimaryKeyFlag bit = 0
 		, @RowChecksum bit
-		, @SourceColumnList varchar(4000)
-		, @TargetColumnList varchar(4000)
+		, @SourceColumnList varchar(max)
+		, @TargetColumnList varchar(max)
 		, @SourceObjectID int
 		, @TargetObjectID int
 		, @BusinessKeyCount smallint
@@ -259,7 +260,7 @@ BEGIN
 		exec (@sql)	
 	END
 	ELSE IF @SourceType ='View' and @Skip=0
-	BEGIN			
+	BEGIN	
 		/* Check if collation between Lakehouse and Data Warehouse is different */
 		SELECT @TargetCollation = CONVERT(sysname, DATABASEPROPERTYEX(db_name(), 'Collation'))
 		SELECT TOP 1 @SourceCollation = collation_name FROM sys.columns 
@@ -268,7 +269,6 @@ BEGIN
 			   WHERE object_id = object_id(@SourceObject) AND collation_name IS NOT NULL AND collation_name <> @TargetCollation
 		IF COALESCE(@SourceCollation, @TargetCollation) <> @TargetCollation
 			SET @ForceCollation = 1
-
 		/* Update Logic */	
 		IF @DedupeFlag=1
 			SET @HideColumns =coalesce(@HideColumns + ',','')  + 'RowVersionNo';
@@ -307,7 +307,7 @@ BEGIN
 		WHERE j.TableID=@TableID
 		ELSE
 			SET @BusinessKeysQualified = (SELECT STRING_AGG(@TablePrefix + '.' + TRIM(value), ', ') FROM STRING_SPLIT(@BusinessKeys, ','));
-
+	
 		IF @BusinessKeys IS NOT NULL 
 			SET @WhereJoinSQL=null
 		ELSE
@@ -343,9 +343,8 @@ BEGIN
 		SELECT @InsertColumns = case when @InsertColumns is null then '' else @InsertColumns + ',' end + (SELECT string_agg( c.name, ',') FROM sys.columns c WHERE c.object_id = @SourceObjectID and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns,','))   )
 		,@SelectColumns = case when @SelectColumns is null then '' else @SelectColumns + ',' end + (SELECT string_agg(  @TablePrefix + '.' + c.name + CASE WHEN @ForceCollation = 1 AND c.collation_name <> @TargetCollation THEN ' COLLATE ' + @TargetCollation + ' AS ' + c.name ELSE '' END, ',') FROM sys.columns c WHERE c.object_id = @SourceObjectID and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns ,',')  ) )
 		,@RowVersionNoFlag = CASE WHEN EXISTS (SELECT * FROM sys.columns sc WHERE  object_id = @SourceObjectID and name='RowVersionNo') then 1 else 0 end 
-		
-		/* Adding Identity */
 
+		/* Adding Identity */
 		IF @Identity = 1 AND @PrimaryKey is null
 			RAISERROR ('Unsupported Identity=1 AND PrimaryKey not defined for Table %s. Check Meta.config.edwTables.',16,1, @TargetTable)	
 		IF @Identity = 1 AND @Exists=1 AND @IdentityExpression like 'ROW_NUMBER%'
@@ -363,7 +362,6 @@ BEGIN
 		END
 		ELSE IF @Identity=1 AND @BusinessKeys is null
 		RAISERROR ('Unsupported Identity=1 AND BusinessKeys not defined for Table %s. Check Meta.config.edwTables.',16,1,@TargetTable)
-
 		SELECT @PrimaryKey=replace(@TargetTable, 'Dim','') + 'Key'
 
 		IF @PrestageSourceFlag=1
@@ -373,16 +371,15 @@ BEGIN
 				SET @SourceObject = @PrestageSourceTable
 			END			
 		PRINT '/*' + char(13) + char(10) + 'exec dwa.usp_TableLoad @TargetObject=''' + @TargetObject+''',@TableID=' + convert(varchar, @TableID) + ',@RunID=''' + convert (varchar(255), @RunID) +'''' +  char(13) + char(10) + '*/' ;
-		
+
 		DECLARE @UpdateColumnList varchar(4000) = CASE WHEN @RelatedTableCount > 1 THEN @TargetColumnList ELSE @SourceColumnList END;
-		SET @UpdateColumns = (	SELECT string_agg ('t.' + c.value + '=' + @TablePrefix + '.' + c.value  , ',') FROM string_split(@UpdateColumnList,',')  c WHERE  
+		SET @UpdateColumns = (	SELECT string_agg (convert(varchar(max),'t.' + c.value + '=' + @TablePrefix + '.' + c.value)  , ',') FROM string_split(@UpdateColumnList,',')  c WHERE  
 						c.value not in (SELECT value from string_split(@BusinessKeys,','))
 						AND c.value NOT IN (SELECT ltrim(value) from string_split(@HideColumns,','))
 						AND c.value NOT IN (SELECT ltrim(value) from string_split(@LineageColumns,','))
 						AND c.value <> @PrimaryKey
 		)
-		
-			   
+ 
 		/* Add Rowchecksum */
 		SELECT @NonKeyColumns = (select string_agg(value,',') from string_split(@SourceColumnList, ',') c 
 								WHERE c.value <> @PrimaryKey
