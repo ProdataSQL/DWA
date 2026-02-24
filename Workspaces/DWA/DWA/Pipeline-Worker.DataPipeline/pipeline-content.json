@@ -2,16 +2,34 @@
   "properties": {
     "activities": [
       {
+        "name": "ForEach",
         "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "usp_PipelineQueue",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
         "typeProperties": {
-          "batchCount": 8,
           "items": {
             "value": "@activity('usp_PipelineQueue').output.resultsets[0].rows",
             "type": "Expression"
           },
+          "batchCount": 8,
           "activities": [
             {
+              "name": "Switch1",
               "type": "Switch",
+              "dependsOn": [
+                {
+                  "activity": "usp_PipelineStart",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
               "typeProperties": {
                 "on": {
                   "value": "@item().TemplateType",
@@ -22,7 +40,16 @@
                     "value": "Notebook",
                     "activities": [
                       {
+                        "name": "Notebook",
                         "type": "TridentNotebook",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
                         "typeProperties": {
                           "notebookId": {
                             "value": "@item().TemplateID",
@@ -80,16 +107,7 @@
                             "value": "@item().SessionTag",
                             "type": "Expression"
                           }
-                        },
-                        "policy": {
-                          "timeout": "0.12:00:00",
-                          "retry": 0,
-                          "retryIntervalInSeconds": 30,
-                          "secureInput": false,
-                          "secureOutput": false
-                        },
-                        "name": "Notebook",
-                        "dependsOn": []
+                        }
                       }
                     ]
                   },
@@ -97,7 +115,16 @@
                     "value": "Load",
                     "activities": [
                       {
+                        "name": "usp_TableLoad",
                         "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 1,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
                         "typeProperties": {
                           "storedProcedureName": "dwa.usp_TableLoad",
                           "storedProcedureParameters": {
@@ -110,27 +137,21 @@
                             }
                           }
                         },
-                        "linkedService": {
-                          "name": "7ec2994b_c245_4157_ac90_987c75df9d82",
+                        "connectionSettings": {
+                          "name": "ead26267_ebb9_4b4d_be00_878fe4e1b43c",
                           "properties": {
+                            "annotations": [],
                             "type": "DataWarehouse",
                             "typeProperties": {
-                              "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.DWDatabaseName",
-                              "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.DWServerName",
-                              "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkSpaceID"
+                              "endpoint": "@pipeline().libraryVariables.Environment_DWServerName",
+                              "artifactId": "@pipeline().libraryVariables.Environment_DWDatabaseID",
+                              "workspaceId": "@pipeline().DataFactory"
                             },
-                            "annotations": []
+                            "externalReferences": {
+                              "connection": "@pipeline().libraryVariables.Environment_DWConnectionID"
+                            }
                           }
-                        },
-                        "policy": {
-                          "timeout": "0.12:00:00",
-                          "retry": 0,
-                          "retryIntervalInSeconds": 30,
-                          "secureInput": false,
-                          "secureOutput": false
-                        },
-                        "name": "usp_TableLoad",
-                        "dependsOn": []
+                        }
                       }
                     ]
                   },
@@ -138,8 +159,27 @@
                     "value": "DataPipeline",
                     "activities": [
                       {
+                        "name": "DataPipeline",
                         "type": "InvokePipeline",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
                         "typeProperties": {
+                          "waitOnCompletion": true,
+                          "operationType": "InvokeFabricPipeline",
+                          "pipelineId": {
+                            "value": "@item().TemplateID",
+                            "type": "Expression"
+                          },
+                          "workspaceId": {
+                            "value": "@coalesce( item().TemplateWorkspaceID, pipeline().DataFactory)",
+                            "type": "Expression"
+                          },
                           "parameters": {
                             "SourceSettings": {
                               "value": "@item().SourceSettings",
@@ -165,61 +205,42 @@
                               "value": "@item().LineageKey",
                               "type": "Expression"
                             }
-                          },
-                          "waitOnCompletion": true,
-                          "workspaceId": {
-                            "value": "@coalesce( item().TemplateWorkspaceID, pipeline().DataFactory)",
-                            "type": "Expression"
-                          },
-                          "pipelineId": {
-                            "value": "@item().TemplateID",
-                            "type": "Expression"
-                          },
-                          "operationType": "InvokeFabricPipeline"
+                          }
                         },
                         "externalReferences": {
-                          "connection": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
-                        },
-                        "policy": {
-                          "timeout": "0.12:00:00",
-                          "retry": 0,
-                          "retryIntervalInSeconds": 30,
-                          "secureInput": false,
-                          "secureOutput": false
-                        },
-                        "name": "DataPipeline",
-                        "dependsOn": []
+                          "connection": "@pipeline().libraryVariables.Environment_DataPipelinesConnectionID"
+                        }
                       }
                     ]
                   }
                 ],
                 "defaultActivities": [
                   {
+                    "name": "Fail1",
                     "type": "Fail",
+                    "dependsOn": [],
                     "typeProperties": {
                       "message": {
                         "value": "@{item().TemplateType} not found in switch statement, or @{item().Template} not connected to the Lakehouse or not in config.Artefacts view",
                         "type": "Expression"
                       },
                       "errorCode": "0001"
-                    },
-                    "name": "Fail1",
-                    "dependsOn": []
+                    }
                   }
                 ]
-              },
-              "name": "Switch1",
-              "dependsOn": [
-                {
-                  "activity": "usp_PipelineStart",
-                  "dependencyConditions": [
-                    "Succeeded"
-                  ]
-                }
-              ]
+              }
             },
             {
+              "name": "usp_PipelineStart",
               "type": "SqlServerStoredProcedure",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.00:10:00",
+                "retry": 1,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
                 "storedProcedureName": "[audit].[usp_PipelineStart]",
                 "storedProcedureParameters": {
@@ -281,30 +302,39 @@
                   }
                 }
               },
-              "linkedService": {
-                "name": "720de544_a7b9_44c6_a2d2_e22d352a3464",
+              "connectionSettings": {
+                "name": "d5890115_eb40_43ba_8541_b934264c5f69",
                 "properties": {
-                  "type": "DataWarehouse",
+                  "annotations": [],
+                  "type": "FabricSqlDatabase",
                   "typeProperties": {
-                    "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-                    "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-                    "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
                   },
-                  "annotations": []
+                  "externalReferences": {
+                    "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
+                  }
                 }
-              },
-              "policy": {
-                "timeout": "0.1:00:00",
-                "retry": 1,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "usp_PipelineStart",
-              "dependsOn": []
+              }
             },
             {
+              "name": "usp_PipelineEndFailure",
               "type": "SqlServerStoredProcedure",
+              "dependsOn": [
+                {
+                  "activity": "Switch1",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
                 "storedProcedureName": "[audit].[usp_PipelineEndFailure]",
                 "storedProcedureParameters": {
@@ -325,37 +355,39 @@
                   }
                 }
               },
-              "linkedService": {
-                "name": "e6b1c0d8_47e9_4f7f_b084_8b577586ae10",
+              "connectionSettings": {
+                "name": "9ee1ef00_a982_4d23_97ef_b7325f2b35b3",
                 "properties": {
-                  "type": "DataWarehouse",
+                  "annotations": [],
+                  "type": "FabricSqlDatabase",
                   "typeProperties": {
-                    "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-                    "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-                    "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
                   },
-                  "annotations": []
+                  "externalReferences": {
+                    "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
+                  }
                 }
-              },
-              "policy": {
-                "timeout": "0.12:00:00",
-                "retry": 0,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "usp_PipelineEndFailure",
+              }
+            },
+            {
+              "name": "usp_PipelineEndSuccess",
+              "type": "SqlServerStoredProcedure",
               "dependsOn": [
                 {
                   "activity": "Switch1",
                   "dependencyConditions": [
-                    "Failed"
+                    "Succeeded"
                   ]
                 }
-              ]
-            },
-            {
-              "type": "SqlServerStoredProcedure",
+              ],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
                 "storedProcedureName": "[audit].[usp_PipelineEndSuccess]",
                 "storedProcedureParameters": {
@@ -368,57 +400,52 @@
                   }
                 }
               },
-              "linkedService": {
-                "name": "e6b1c0d8_47e9_4f7f_b084_8b577586ae10",
+              "connectionSettings": {
+                "name": "a7cf016d_8fb6_4689_a3ab_8c1e1e35113a",
                 "properties": {
-                  "type": "DataWarehouse",
+                  "annotations": [],
+                  "type": "FabricSqlDatabase",
                   "typeProperties": {
-                    "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-                    "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-                    "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
                   },
-                  "annotations": []
+                  "externalReferences": {
+                    "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
+                  }
                 }
-              },
-              "policy": {
-                "timeout": "0.12:00:00",
-                "retry": 0,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "usp_PipelineEndSuccess",
-              "dependsOn": [
-                {
-                  "activity": "Switch1",
-                  "dependencyConditions": [
-                    "Succeeded"
-                  ]
-                }
-              ]
+              }
             }
           ]
-        },
-        "name": "ForEach",
-        "dependsOn": [
-          {
-            "activity": "usp_PipelineQueue",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
+        }
       },
       {
+        "name": "usp_PipelineQueue",
         "type": "Script",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "connectionSettings": {
+          "name": "b54f23ce_2eab_4d8d_b903_ccaad4b34310",
+          "properties": {
+            "annotations": [],
+            "type": "FabricSqlDatabase",
+            "typeProperties": {
+              "workspaceId": "@pipeline().DataFactory",
+              "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
+            },
+            "externalReferences": {
+              "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
+            }
+          }
+        },
         "typeProperties": {
           "scripts": [
             {
-              "text": {
-                "value": "config.usp_PipelineQueue @PackageGroup, @PipelineSequence, @PipelineID",
-                "type": "Expression"
-              },
-              "type": "Query",
               "parameters": [
                 {
                   "name": "PackageGroup",
@@ -447,56 +474,16 @@
                   },
                   "direction": "Input"
                 }
-              ]
+              ],
+              "type": "Query",
+              "text": {
+                "value": "config.usp_PipelineQueue @PackageGroup, @PipelineSequence, @PipelineID",
+                "type": "Expression"
+              }
             }
           ],
           "scriptBlockExecutionTimeout": "02:00:00"
-        },
-        "linkedService": {
-          "name": "4f6b9180_d622_4308_9357_038dd3f4a234",
-          "properties": {
-            "type": "DataWarehouse",
-            "typeProperties": {
-              "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-              "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-              "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
-            },
-            "annotations": []
-          }
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "usp_PipelineQueue",
-        "dependsOn": [
-          {
-            "activity": "Get Env Variables",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
-      },
-      {
-        "type": "ExecutePipeline",
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
-            "type": "PipelineReference"
-          },
-          "parameters": {},
-          "waitOnCompletion": true
-        },
-        "policy": {
-          "secureInput": false
-        },
-        "name": "Get Env Variables",
-        "description": "New Invoke Pipeline doesn't support returnValue",
-        "dependsOn": []
+        }
       }
     ],
     "parameters": {
@@ -506,11 +493,43 @@
       },
       "PipelineID": {
         "type": "Int",
-        "defaultValue": 4
+        "defaultValue": -1
       },
       "PipelineSequence": {
         "type": "Int",
-        "defaultValue": -1
+        "defaultValue": 400
+      }
+    },
+    "libraryVariables": {
+      "Environment_MetaConnectionID": {
+        "type": "String",
+        "variableName": "MetaConnectionID",
+        "libraryName": "Environment"
+      },
+      "Environment_MetaDatabaseID": {
+        "type": "String",
+        "variableName": "MetaDatabaseID",
+        "libraryName": "Environment"
+      },
+      "Environment_DWServerName": {
+        "type": "String",
+        "variableName": "DWServerName",
+        "libraryName": "Environment"
+      },
+      "Environment_DWDatabaseID": {
+        "type": "String",
+        "variableName": "DWDatabaseID",
+        "libraryName": "Environment"
+      },
+      "Environment_DWConnectionID": {
+        "type": "String",
+        "variableName": "DWConnectionID",
+        "libraryName": "Environment"
+      },
+      "Environment_DataPipelinesConnectionID": {
+        "type": "String",
+        "variableName": "DataPipelinesConnectionID",
+        "libraryName": "Environment"
       }
     }
   }

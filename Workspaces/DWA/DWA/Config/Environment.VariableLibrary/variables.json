@@ -1,0 +1,47 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+  "variables": [
+    {
+      "name": "MetaConnectionID",
+      "note": "",
+      "type": "String",
+      "value": "7ebfebb0-f59c-4505-b46b-34144115988a"
+    },
+    {
+      "name": "MetaDatabaseID",
+      "note": "",
+      "type": "String",
+      "value": "fe70c606-af27-4f64-973a-2be877526212"
+    },
+    {
+      "name": "DWServerName",
+      "note": "",
+      "type": "String",
+      "value": "DW"
+    },
+    {
+      "name": "DWConnectionID",
+      "note": "",
+      "type": "String",
+      "value": "d3c40995-7826-4a0e-81dc-72b129a7c39e"
+    },
+    {
+      "name": "DWDatabaseID",
+      "note": "",
+      "type": "String",
+      "value": "c7786002-b337-4799-81be-2243e2ce0200"
+    },
+    {
+      "name": "PipelineWorker",
+      "note": "",
+      "type": "String",
+      "value": "8e5587b8-b4e9-465b-abba-94e1c1ef92e3"
+    },
+    {
+      "name": "DataPipelinesConnectionID",
+      "note": "",
+      "type": "String",
+      "value": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+    }
+  ]
+}
