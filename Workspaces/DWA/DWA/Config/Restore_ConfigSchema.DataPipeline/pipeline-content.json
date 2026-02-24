@@ -40,14 +40,17 @@
                       "compressionCodec": "snappy"
                     },
                     "schema": [],
-                    "linkedService": {
-                      "name": "45490509_ea73_424f_887b_616c34852c00",
+                    "connectionSettings": {
+                      "name": "b7405e5f_c877_4ccd_979f_d1fc9cabb1f4",
                       "properties": {
                         "type": "Lakehouse",
                         "typeProperties": {
-                          "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.LakehouseID",
-                          "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID",
+                          "artifactId": "@pipeline().libraryVariables.DefaultLakehouseID",
+                          "workspaceId": "@pipeline().DataFactory",
                           "rootFolder": "Files"
+                        },
+                        "externalReferences": {
+                          "connection": "@pipeline().libraryVariables.LakehouseConnectionID"
                         },
                         "annotations": []
                       }
@@ -123,14 +126,16 @@
         "typeProperties": {
           "storedProcedureName": "[config].[usp_TruncateAll]"
         },
-        "linkedService": {
-          "name": "61a95640_fb75_4b93_b711_d1145494d302",
+        "connectionSettings": {
+          "name": "25d8118a_77da_4eb9_b7ac_0ff556d6ddb1",
           "properties": {
-            "type": "DataWarehouse",
+            "type": "FabricSqlDatabase",
             "typeProperties": {
-              "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-              "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-              "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+              "artifactId": "@pipeline().libraryVariables.MetaDatabaseID",
+              "workspaceId": "@pipeline().DataFactory"
+            },
+            "externalReferences": {
+              "connection": "@pipeline().libraryVariables.MetaConnectionID"
             },
             "annotations": []
           }
@@ -153,22 +158,6 @@
         ]
       },
       {
-        "type": "ExecutePipeline",
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
-            "type": "PipelineReference"
-          },
-          "parameters": {},
-          "waitOnCompletion": true
-        },
-        "policy": {
-          "secureInput": false
-        },
-        "name": "Get Env Variables",
-        "dependsOn": []
-      },
-      {
         "type": "Script",
         "typeProperties": {
           "scripts": [
@@ -182,14 +171,16 @@
           ],
           "scriptBlockExecutionTimeout": "02:00:00"
         },
-        "linkedService": {
-          "name": "aa5930ba_fb93_4812_a809_15adffc84bed",
+        "connectionSettings": {
+          "name": "f11ab596_004a_40c4_b899_f7cc09d68ba8",
           "properties": {
-            "type": "DataWarehouse",
+            "type": "FabricSqlDatabase",
             "typeProperties": {
-              "artifactId": "@activity('Get Env Variables').output.pipelineReturnValue.MetaDatabaseName",
-              "endpoint": "@activity('Get Env Variables').output.pipelineReturnValue.MetaServerName",
-              "workspaceId": "@activity('Get Env Variables').output.pipelineReturnValue.WorkspaceID"
+              "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID",
+              "workspaceId": "@pipeline().DataFactory"
+            },
+            "externalReferences": {
+              "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
             },
             "annotations": []
           }
@@ -202,20 +193,35 @@
           "secureOutput": false
         },
         "name": "usp_GetTables",
-        "dependsOn": [
-          {
-            "activity": "Get Env Variables",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
+        "dependsOn": []
       }
     ],
     "parameters": {
       "Date": {
         "type": "string",
         "defaultValue": "20250709"
+      }
+    },
+    "libraryVariables": {
+      "MetaConnectionID": {
+        "type": "String",
+        "variableName": "MetaConnectionID",
+        "libraryName": "Environment"
+      },
+      "MetaDatabaseID": {
+        "type": "String",
+        "variableName": "MetaDatabaseID",
+        "libraryName": "Environment"
+      },
+      "LakehouseConnectionID": {
+        "type": "String",
+        "variableName": "LakehouseConnectionID",
+        "libraryName": "Environment"
+      },
+      "DefaultLakehouseID": {
+        "type": "String",
+        "variableName": "DefaultLakehouseID",
+        "libraryName": "Environment"
       }
     }
   }

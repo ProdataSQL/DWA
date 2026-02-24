@@ -93,10 +93,13 @@
                       "location": {
                         "type": "LakehouseLocation",
                         "fileName": {
-                          "value": "@item().Name",
+                          "value": "@{concat(item().Name,'.parquet')}",
                           "type": "Expression"
                         },
-                        "folderPath": "Backup/Config"
+                        "folderPath": {
+                          "value": "backup/config/@{formatDateTime(utcnow(),'yyyyMMdd')}",
+                          "type": "Expression"
+                        }
                       },
                       "compressionCodec": "snappy"
                     },
