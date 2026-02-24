@@ -2,16 +2,21 @@
   "properties": {
     "activities": [
       {
+        "name": "Copy-SFTP-Prodata",
         "type": "Copy",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
         "typeProperties": {
           "source": {
             "type": "BinarySource",
-            "formatSettings": {
-              "type": "BinaryReadSettings"
-            },
             "storeSettings": {
               "type": "SftpReadSettings",
-              "disableChunking": false,
               "recursive": {
                 "value": "@if(contains(json(string(pipeline().parameters.SourceSettings)),'recurisve'), bool(json(string(pipeline().parameters.SourceSettings)).recurisve), false)",
                 "type": "Expression"
@@ -24,9 +29,14 @@
                 "value": "@json(string(pipeline().parameters.SourceSettings)).file",
                 "type": "Expression"
               },
-              "deleteFilesAfterCompletion": false
+              "deleteFilesAfterCompletion": false,
+              "disableChunking": false
+            },
+            "formatSettings": {
+              "type": "BinaryReadSettings"
             },
             "datasetSettings": {
+              "annotations": [],
               "type": "Binary",
               "typeProperties": {
                 "location": {
@@ -35,17 +45,29 @@
               },
               "externalReferences": {
                 "connection": "1a8439c4-a50b-4ef5-82d2-d150be2f91f7"
-              },
-              "annotations": []
+              }
             }
           },
           "sink": {
             "type": "BinarySink",
             "storeSettings": {
-              "type": "LakehouseWriteSettings",
+              "type": "AzureBlobStorageWriteSettings",
               "copyBehavior": "PreserveHierarchy"
             },
             "datasetSettings": {
+              "annotations": [],
+              "linkedService": {
+                "name": "5be552d7_c8d0_4522_9dff_67ecf77756c0",
+                "properties": {
+                  "annotations": [],
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "workspaceId": "@if(contains(pipeline().parameters.TargetConnectionSettings,'worspaceId'),json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId,pipeline().DataFactory)",
+                    "artifactId": "@if(contains(pipeline().parameters.TargetConnectionSettings,'lakehouseId'),json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId,pipeline().libraryVariables.DefaultLakehouseID)",
+                    "rootFolder": "Files"
+                  }
+                }
+              },
               "type": "Binary",
               "typeProperties": {
                 "location": {
@@ -55,56 +77,11 @@
                     "type": "Expression"
                   }
                 }
-              },
-              "linkedService": {
-                "name": "2f74075b_60a1_45d9_a636_9dd9425856cf",
-                "properties": {
-                  "type": "Lakehouse",
-                  "typeProperties": {
-                    "artifactId": "@if(contains(pipeline().parameters.TargetConnectionSettings,'lakehouseId'),json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId,activity('Get Env Variables').output.pipelineReturnValue.LakehouseID)",
-                    "workspaceId": "@if(contains(pipeline().parameters.TargetConnectionSettings,'worspaceId'),json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId,pipeline().DataFactory)",
-                    "rootFolder": "Files"
-                  },
-                  "annotations": []
-                }
-              },
-              "annotations": []
+              }
             }
           },
           "enableStaging": false
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "Copy-SFTP-Prodata",
-        "dependsOn": [
-          {
-            "activity": "Get Env Variables",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
-      },
-      {
-        "type": "ExecutePipeline",
-        "typeProperties": {
-          "pipeline": {
-            "referenceName": "0b161fb6-be93-ad8e-48c7-d3f479d6132a",
-            "type": "PipelineReference"
-          },
-          "parameters": {},
-          "waitOnCompletion": true
-        },
-        "policy": {
-          "secureInput": false
-        },
-        "name": "Get Env Variables",
-        "dependsOn": []
+        }
       }
     ],
     "parameters": {
@@ -134,6 +111,13 @@
       },
       "LineageKey": {
         "type": "string"
+      }
+    },
+    "libraryVariables": {
+      "DefaultLakehouseID": {
+        "type": "String",
+        "variableName": "DefaultLakehouseID",
+        "libraryName": "Environment"
       }
     }
   }

@@ -17,8 +17,19 @@
           "waitOnCompletion": true,
           "commitMode": "Transactional",
           "operationType": "SemanticModelRefresh",
-          "datasetId": "@json(string(pipeline().parameters.SourceConnectionSettings)).DatasetID",
-          "groupId": "@json(string(pipeline().parameters.SourceConnectionSettings)).WorkspaceID"
+          "datasetId": {
+            "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).DatasetID",
+            "type": "Expression"
+          },
+          "groupId": {
+            "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).WorkspaceID",
+            "type": "Expression"
+          },
+          "objects": [
+            {
+              "table": ""
+            }
+          ]
         },
         "externalReferences": {
           "connection": "25dc7bd7-61f3-4683-adf1-9c6141e45385"
