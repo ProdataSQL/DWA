@@ -48,6 +48,12 @@
       "note": "",
       "type": "String",
       "value": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
+    },
+    {
+      "name": "LakehouseConnectionID",
+      "note": "",
+      "type": "String",
+      "value": "a05a74de-54d1-42d4-aaa2-081c35a9cb66"
     }
   ]
 }
