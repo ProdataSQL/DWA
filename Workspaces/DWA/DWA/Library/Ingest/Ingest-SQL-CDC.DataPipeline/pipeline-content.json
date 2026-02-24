@@ -103,10 +103,10 @@
                 "type": "FabricSqlDatabase",
                 "typeProperties": {
                   "workspaceId": "@pipeline().DataFactory",
-                  "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
+                  "artifactId": "@pipeline().libraryVariables.MetaDatabaseID"
                 },
                 "externalReferences": {
-                  "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
+                  "connection": "@pipeline().libraryVariables.MetaConnectionID"
                 }
               }
             },
@@ -277,12 +277,12 @@
       }
     },
     "libraryVariables": {
-      "Environment_MetaConnectionID": {
+      "MetaConnectionID": {
         "type": "String",
         "variableName": "MetaConnectionID",
         "libraryName": "Environment"
       },
-      "Environment_MetaDatabaseID": {
+      "MetaDatabaseID": {
         "type": "String",
         "variableName": "MetaDatabaseID",
         "libraryName": "Environment"
