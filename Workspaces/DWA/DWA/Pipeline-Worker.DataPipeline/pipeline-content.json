@@ -143,7 +143,7 @@
                             "annotations": [],
                             "type": "DataWarehouse",
                             "typeProperties": {
-                              "endpoint": "@pipeline().libraryVariables.Environment_DWServerName",
+                              "endpoint": "@pipeline().libraryVariables.Environment_SQLConnectionString",
                               "artifactId": "@pipeline().libraryVariables.Environment_DWDatabaseID",
                               "workspaceId": "@pipeline().DataFactory"
                             },
@@ -511,11 +511,6 @@
         "variableName": "MetaDatabaseID",
         "libraryName": "Environment"
       },
-      "Environment_DWServerName": {
-        "type": "String",
-        "variableName": "DWServerName",
-        "libraryName": "Environment"
-      },
       "Environment_DWDatabaseID": {
         "type": "String",
         "variableName": "DWDatabaseID",
@@ -529,6 +524,11 @@
       "Environment_DataPipelinesConnectionID": {
         "type": "String",
         "variableName": "DataPipelinesConnectionID",
+        "libraryName": "Environment"
+      },
+      "Environment_SQLConnectionString": {
+        "type": "String",
+        "variableName": "SQLConnectionString",
         "libraryName": "Environment"
       }
     }
