@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "activities": [
+      {
+        "type": "InvokePipeline",
+        "typeProperties": {
+          "parameters": {
+            "PackageGroup": "AW",
+            "Stage": "ALL"
+          },
+          "waitOnCompletion": true,
+          "workspaceId": "00000000-0000-0000-0000-000000000000",
+          "pipelineId": "1967f137-61fb-bc8c-4f29-d84704ff05ff",
+          "operationType": "InvokeFabricPipeline"
+        },
+        "externalReferences": {
+          "connection": "aae6c34c-53da-426d-885f-27ec363b6cad"
+        },
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureInput": false,
+          "secureOutput": false
+        },
+        "name": "AW",
+        "dependsOn": []
+      }
+    ]
+  }
+}
