@@ -1,5 +1,7 @@
 -- Auto Generated (Do not modify) 1FBD0A69F7FD430A9FD834BAC5C4E8DDB6006B8F01F70EDA41D10DDCD3B4BC51
 
+
+
 /****** Object:  View [aw_int].[Date]    Script Date: 06/11/2024 19:37:48 ******/
 /*  Source:       Calculated   
     Unit Test:    dwa.usp_TableLoad @TableID=1  
@@ -24,4 +26,4 @@ SELECT ISNULL(CONVERT(VARCHAR(8),CONVERT(DATE,CONVERT(VARCHAR(10),Date),103),112
 	  ,ISNULL(CONVERT(smallint,FiscalSemester),0) AS FiscalSemester
 	  ,CONVERT(VARCHAR(512), [FileName]) AS FileName
 	  ,ISNULL(CONVERT(VARCHAR(36),LineageKey),0) AS LineageKey
-FROM [LH].[aw_stg].[date];
+FROM [LH].[aw_stg].[Date];

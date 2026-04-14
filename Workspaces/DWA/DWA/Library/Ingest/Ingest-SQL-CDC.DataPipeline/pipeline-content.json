@@ -71,10 +71,10 @@
                   "type": "Expression"
                 }
               },
-              "table": {
+              "target_lsn": {
                 "type": "String",
                 "value": {
-                  "value": "@if(\n    contains(string(pipeline().parameters.SourceSettings), '\"table\"'),\n    json(string(pipeline().parameters.SourceSettings)).table,\n    null\n)",
+                  "value": "@activity('SQL - Get max LSN').output.resultsets[0].rows[0].max_lsn",
                   "type": "Expression"
                 }
               },
@@ -85,9 +85,12 @@
                   "type": "Expression"
                 }
               },
-              "target_lsn": {
+              "table": {
                 "type": "String",
-                "value": "@activity('SQL - Get max LSN').output.resultsets[0].rows[0].max_lsn"
+                "value": {
+                  "value": "@if(\n    contains(string(pipeline().parameters.SourceSettings), '\"table\"'),\n    json(string(pipeline().parameters.SourceSettings)).table,\n    null\n)",
+                  "type": "Expression"
+                }
               }
             },
             "queryTimeout": "02:00:00",
@@ -97,7 +100,7 @@
           "datasetSettings": {
             "annotations": [],
             "connectionSettings": {
-              "name": "545bf378_da5b_4814_bb8e_2fc31e5367b7",
+              "name": "7781a315_9145_471d_8ac8_73a790b2ea9e",
               "properties": {
                 "annotations": [],
                 "type": "FabricSqlDatabase",
@@ -159,7 +162,7 @@
                     }
                   ],
                   "sqlReaderQuery": {
-                    "value": "DECLARE @table         varchar(255) = '@{item().table}'\nDECLARE @capture_inst  sysname\nDECLARE @from_lsn_str varchar(22) = '@{item().from_lsn}'\nDECLARE @to_lsn_str varchar(22) = '@{item().to_lsn}'\nDECLARE @to_lsn        binary(10) \nDECLARE @from_lsn      binary(10) \nDECLARE @is_snapshot   bit\n\nIF len(@to_lsn_str) = 0 or @to_lsn_str is null \n\tSELECT @to_lsn = sys.fn_cdc_get_max_lsn(), @to_lsn_str = CONVERT(varchar, sys.fn_cdc_get_max_lsn(),1)\nELSE\n\tSET @to_lsn  = convert(binary(10),@to_lsn_str ,1)\n\nSET @from_lsn =convert(binary(10),nullif(@from_lsn_str,'') ,1)\nSELECT @capture_inst = capture_instance\nFROM cdc.change_tables\nWHERE source_object_id = OBJECT_ID(@table)\n\nIF @capture_inst IS NULL\nBEGIN\n\tRAISERROR('CDC is not enabled for table %s', 16, 1, @Table)\n\tRETURN\nEND\n\n-- Determine if snapshot is required\nIF @from_lsn IS NULL\n\tOR NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM cdc.lsn_time_mapping\n\t\tWHERE start_lsn = @from_lsn\n\t)\n\tSET @is_snapshot = 1\nELSE\n\tSET @is_snapshot = 0\n\n-- Snapshot query\nIF @is_snapshot = 1\nBEGIN\n\tDECLARE @sql nvarchar(max) = '\n\tSELECT \n\t\tt.*\n\t,\t0 AS __rowMarker__\n\tFROM ' + @Table + ' t'\n\n\tEXEC sp_executesql @sql, N'@to_lsn binary(10)', @to_lsn\nEND\n-- CDC incremental query\nELSE\nBEGIN\n\tDECLARE @cdc_sql nvarchar(max) = '\n\tSELECT \n\t\tcdc.*\n\t,\tCASE cdc.__$operation\n\t\t\tWHEN 1 THEN 2\n\t\t\tWHEN 2 THEN 4\n\t\t\tWHEN 4 THEN 4\n\t\t\tELSE -1\n\t\tEND AS __rowMarker__\n\tFROM cdc.fn_cdc_get_net_changes_' + @capture_inst + '(' + @from_lsn_str + ',' +  @to_lsn_str + ', ''all'') AS cdc\n\tWHERE cdc.__$operation IN (1, 2, 4)'\n\n\tprint @cdc_sql\n\tEXEC sp_executesql @cdc_sql,\n\t\tN'@from_lsn binary(10), @to_lsn binary(10)',\n\t\t@from_lsn=@from_lsn, @to_lsn=@to_lsn\nEND\n\n\n",
+                    "value": "DECLARE @table         varchar(255) = '@{item().Table}'\nDECLARE @capture_inst  sysname\nDECLARE @from_lsn_str varchar(22) = '@{item().from_lsn}'\nDECLARE @to_lsn_str varchar(22) = '@{item().to_lsn}'\nDECLARE @to_lsn        binary(10) \nDECLARE @from_lsn      binary(10) \nDECLARE @is_snapshot   bit\n\nIF len(@to_lsn_str) = 0 or @to_lsn_str is null \n\tSELECT @to_lsn = sys.fn_cdc_get_max_lsn(), @to_lsn_str = CONVERT(varchar, sys.fn_cdc_get_max_lsn(),1)\nELSE\n\tSET @to_lsn  = convert(binary(10),@to_lsn_str ,1)\n\nSET @from_lsn =convert(binary(10),nullif(@from_lsn_str,'') ,1)\nSELECT @capture_inst = capture_instance\nFROM cdc.change_tables\nWHERE source_object_id = OBJECT_ID(@table)\n\nIF @capture_inst IS NULL\nBEGIN\n\tRAISERROR('CDC is not enabled for table %s', 16, 1, @table)\n\tRETURN\nEND\n\n-- Determine if snapshot is required\nIF @from_lsn IS NULL\n\tOR NOT EXISTS (\n\t\tSELECT 1\n\t\tFROM cdc.lsn_time_mapping\n\t\tWHERE start_lsn = @from_lsn\n\t)\n\tSET @is_snapshot = 1\nELSE\n\tSET @is_snapshot = 0\n\n-- Snapshot query\nIF @is_snapshot = 1\nBEGIN\n\tDECLARE @sql nvarchar(max) = '\n\tSELECT \n\t\tt.*\n\t,\t0 AS __rowMarker__\n\tFROM ' + @table + ' t'\n\n\tEXEC sp_executesql @sql, N'@to_lsn binary(10)', @to_lsn\nEND\n-- CDC incremental query\nELSE\nBEGIN\n\tDECLARE @cdc_sql nvarchar(max) = '\n\tSELECT \n\t\tcdc.*\n\t,\tCASE cdc.__$operation\n\t\t\tWHEN 1 THEN 2\n\t\t\tWHEN 2 THEN 4\n\t\t\tWHEN 4 THEN 4\n\t\t\tELSE -1\n\t\tEND AS __rowMarker__\n\tFROM cdc.fn_cdc_get_net_changes_' + @capture_inst + '(' + @from_lsn_str + ',' +  @to_lsn_str + ', ''all'') AS cdc\n\tWHERE cdc.__$operation IN (1, 2, 4)'\n\n\tprint @cdc_sql\n\tEXEC sp_executesql @cdc_sql,\n\t\tN'@from_lsn binary(10), @to_lsn binary(10)',\n\t\t@from_lsn=@from_lsn, @to_lsn=@to_lsn\nEND\n\n\n",
                     "type": "Expression"
                   },
                   "queryTimeout": "02:00:00",
@@ -182,16 +185,25 @@
                 "sink": {
                   "type": "ParquetSink",
                   "storeSettings": {
-                    "type": "AzureBlobStorageWriteSettings"
+                    "type": "LakehouseWriteSettings",
+                    "metadata": [
+                      {
+                        "name": "LineageKey",
+                        "value": {
+                          "value": "@pipeline().parameters.LineageKey",
+                          "type": "Expression"
+                        }
+                      }
+                    ]
                   },
                   "formatSettings": {
                     "type": "ParquetWriteSettings",
-                    "enableVertiParquet": true
+                    "enableVertiParquet": false
                   },
                   "datasetSettings": {
                     "annotations": [],
                     "linkedService": {
-                      "name": "d54a3725_20cb_4f3d_b971_51c4155d1e8d",
+                      "name": "7475c873_697a_4bb5_8a2f_51b2c8417dd0",
                       "properties": {
                         "annotations": [],
                         "type": "Lakehouse",
@@ -207,11 +219,11 @@
                       "location": {
                         "type": "LakehouseLocation",
                         "fileName": {
-                          "value": "@{split(item().Table,'.')[1]}_@{formatDateTime(utcNow(), 'yyyyMMddHHmmss')}.parquet",
+                          "value": "@{split(item().table,'.')[1]}_@{formatDateTime(utcNow(), 'yyyyMMddHHmmss')}.parquet",
                           "type": "Expression"
                         },
                         "folderPath": {
-                          "value": "LandingZone/@{json(string(pipeline().parameters.TargetSettings)).schema}.schema/@{split(item().table,'.')[1]}",
+                          "value": "LandingZone/@{split(item().table,'.')[0]}.schema/@{split(item().table,'.')[1]}",
                           "type": "Expression"
                         }
                       },
@@ -227,6 +239,77 @@
                   "typeConversionSettings": {
                     "allowDataTruncation": true,
                     "treatBooleanAsNumber": false
+                  }
+                }
+              }
+            },
+            {
+              "name": "Fail1",
+              "type": "Fail",
+              "dependsOn": [
+                {
+                  "activity": "Copy SQL to Parquet",
+                  "dependencyConditions": [
+                    "Failed"
+                  ]
+                }
+              ],
+              "typeProperties": {
+                "message": {
+                  "value": "Error: Check SELECT * FROM audit.Pipelinelogs WHERE LineageKey='@{pipeline().parameters.LineageKey}'",
+                  "type": "Expression"
+                },
+                "errorCode": "001"
+              }
+            },
+            {
+              "name": "usp_PipelineLogCopy",
+              "type": "SqlServerStoredProcedure",
+              "dependsOn": [
+                {
+                  "activity": "Copy SQL to Parquet",
+                  "dependencyConditions": [
+                    "Completed"
+                  ]
+                }
+              ],
+              "policy": {
+                "timeout": "0.2:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
+              "typeProperties": {
+                "storedProcedureName": "audit.usp_PipelineLogCopy",
+                "storedProcedureParameters": {
+                  "Json": {
+                    "value": {
+                      "value": "@string(activity('Copy SQL to Parquet').output)",
+                      "type": "Expression"
+                    },
+                    "type": "String"
+                  },
+                  "LineageKey": {
+                    "value": {
+                      "value": "@pipeline().parameters.LineageKey",
+                      "type": "Expression"
+                    },
+                    "type": "Guid"
+                  }
+                }
+              },
+              "connectionSettings": {
+                "name": "5eebae40_d75e_433c_927f_a68076d8fe32",
+                "properties": {
+                  "annotations": [],
+                  "type": "FabricSqlDatabase",
+                  "typeProperties": {
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.MetaDatabaseID"
+                  },
+                  "externalReferences": {
+                    "connection": "@pipeline().libraryVariables.MetaConnectionID"
                   }
                 }
               }
@@ -248,22 +331,23 @@
       "SourceConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "connectionId": "d5909f9f-7ce7-4aca-8da2-ba8bfb057610"
+          "connectionId": "1884cb52-e9b3-41c1-8514-995d1a30c3a3"
         }
       },
       "TargetConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "lakehouse": "LH",
-          "lakehouseId": "667bdf6d-f6d5-49f0-a956-26a4f38348e5",
-          "workspaceId": "e7dfa2ff-682b-42cb-ade0-e3e2da7d8b16"
+          "lakehouse": "FabricLH",
+          "lakehouseId": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+          "workspaceId": "9b8a6500-5ccb-49a9-885b-b5b081efed75"
         }
       },
       "ActivitySettings": {
         "type": "string"
       },
       "LineageKey": {
-        "type": "string"
+        "type": "string",
+        "defaultValue": "00000000-0000-0000-0000-000000000000"
       }
     },
     "variables": {

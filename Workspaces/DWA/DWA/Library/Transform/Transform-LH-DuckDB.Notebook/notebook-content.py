@@ -9,12 +9,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960",
+# META       "default_lakehouse": "aa2e3ebf-25c1-408f-980e-967a3976b102",
+# META       "default_lakehouse_name": "StageDM",
+# META       "default_lakehouse_workspace_id": "c1a5a7e8-c891-4a83-900f-d3297bec0a53",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
+# META           "id": "aa2e3ebf-25c1-408f-980e-967a3976b102"
 # META         }
 # META       ]
 # META     }

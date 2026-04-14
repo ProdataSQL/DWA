@@ -14,22 +14,17 @@
         },
         "typeProperties": {
           "method": "post",
+          "groupId": {
+            "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).workspaceId",
+            "type": "Expression"
+          },
           "waitOnCompletion": true,
           "commitMode": "Transactional",
           "operationType": "SemanticModelRefresh",
           "datasetId": {
-            "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).DatasetID",
+            "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).datasetId",
             "type": "Expression"
-          },
-          "groupId": {
-            "value": "@json(string(pipeline().parameters.SourceConnectionSettings)).WorkspaceID",
-            "type": "Expression"
-          },
-          "objects": [
-            {
-              "table": ""
-            }
-          ]
+          }
         },
         "externalReferences": {
           "connection": "25dc7bd7-61f3-4683-adf1-9c6141e45385"
@@ -40,8 +35,8 @@
       "SourceConnectionSettings": {
         "type": "string",
         "defaultValue": {
-          "WorkspaceID": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
-          "DatasetID": "b385ab81-ec52-44da-911a-a09e07f4e56f"
+          "workspaceId": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+          "datasetId": "b385ab81-ec52-44da-911a-a09e07f4e56f"
         }
       },
       "SourceSettings": {

@@ -8,9 +8,10 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": []
 # META     }
 # META   }
 # META }
@@ -38,6 +39,7 @@
 
 # Fabric Refresh Logs
 import pandas as pd
+from builtin.sql_connection_helper import create_engine
 from delta.tables import *
 import sempy.fabric as fabric
 import re
@@ -47,18 +49,22 @@ tenant_id=spark.conf.get("trident.tenant.id")
 workspace_id=spark.conf.get("trident.workspace.id")
 lakehouse_id=spark.conf.get("trident.lakehouse.id")
 lakehouse_name=spark.conf.get("trident.lakehouse.name")
+sql_end_point= fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}").json()['properties']['sqlEndpointProperties']['connectionString']
+connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_point}"
 column_pattern = '[ ,;{}()\n\t/=]' #Pattern to remove invalid columns for lakehouse
 
-# List Datasets/SemanticModels
-df_datasets =fabric.list_datasets()
+engine = create_engine(connection_string)
+with engine.connect() as alchemy_connection:
+    df_datasets = pd.read_sql_query (f"exec Meta.config.usp_OpsDatasets", alchemy_connection)
 
 table_name="fabric_refresh_logs"
 for row in df_datasets.itertuples(index=True, name='datasets'):
-    dataset = row[1]
-    df=fabric.list_refresh_requests(dataset=dataset, workspace=workspace_id, top_n=100)
+    dataset = row.Dataset
+    workspace = row.workspace
+    df=fabric.list_refresh_requests(dataset=dataset, workspace=workspace, top_n=100)
     df=df.rename(columns=dict(zip(df.columns, [re.sub(column_pattern, '_', col.strip(column_pattern).lower()) for col in df.columns])))
     df.insert(0, 'dataset', dataset)
-    df.insert(1, 'workspace', workspace_id)
+    df.insert(1, 'workspace', workspace)
     df['refresh_attempts'] = df['refresh_attempts'].astype(str) 
     df.drop(columns=['extended_status'])
 

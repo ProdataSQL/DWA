@@ -71,7 +71,7 @@ importlib.reload(typing_extensions)
 
 import json
 SourceSettings = '{"Directory": "landing/ai/invoices/markdown", "File":"*.md", "delete":"False"}'
-TargetSettings = '{ "SchemaName":"ai","TableName": "invoice1",  "Directory":"landing/ai/invoices//processed/"}'
+TargetSettings = '{  "SchemaName":"ai","TableName": "invoice1",  "Directory":"landing/ai/invoices//processed/"}'
 SourceConnectionSettings = '{"api_family":"responses", "api_provider":"azure_openai","client_id":"dwa-training-app-id","client_secret":"dwa-training-app-secret","ai_endpoint":"https://ai-foundry-training-swe.cognitiveservices.azure.com/","KeyVault":"https://dw-training-kv.vault.azure.net/"}'
 SinkConnectionSettings = '{}'
 ActivitySettings='{}'
@@ -79,7 +79,7 @@ LineageKey : str = '00000000-0000-0000-0000-000000000000'   #Unique Identifier. 
 RunId : str = '00000000-0000-0000-0000-000000000000'
 
 #Unit Test for Sample Extract, Categorisation and basic reasoning on Invoices
-ActivitySettings={"model":"gpt-4.1","instructions":"You are a specialized data extraction assistant for invoices","input":"Extract These Fields and return a single json object:Supplier : Customer, InvoiceNo, OrderNo, InvoiceDate, DueDate, Items: {Json Array of items on Invoice with attributes: description, Qty, Price, SubTotal}, Tax, Total,PaymentTerms,Valid: Return yes if the sum of the SubTotals equals the total on the invoice,Sector: Return the Industry Sector for the Supplier or Services","temperature":0.3}
+ActivitySettings={"model":"gpt-4.1, ","instructions":"You are a specialized data extraction assistant for invoices","input":"Extract These Fields and return a single json object:Supplier : Customer, InvoiceNo, OrderNo, InvoiceDate, DueDate, Items: {Json Array of items on Invoice with attributes: description, Qty, Price, SubTotal}, Tax, Total,PaymentTerms,Valid: Return yes if the sum of the SubTotals equals the total on the invoice,Sector: Return the Industry Sector for the Supplier or Services","temperature":0.3}
 
 
 # METADATA ********************
@@ -341,6 +341,17 @@ rows = [normalize_json_types(r) for r in rows]
 df = spark.createDataFrame(rows)  
 display(df.limit(10))
 
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+print (activity_settings)
 
 # METADATA ********************
 

@@ -1,4 +1,5 @@
--- Auto Generated (Do not modify) 62926774E06E2413D78F6491BEAB8E6D6F7FFD54237DC5D1D73D6B7D212965D4
+-- Auto Generated (Do not modify) 1AABB97F8D82F6689105134EA772170FF9FAF026A353F3EA26E42D2C4A8F786C
+
 
 
 
@@ -6,30 +7,30 @@
 /* Description: AW DimDepartmentGroup for PowerBI Model
 
    History: 
-			21/02/2025 Created
+			27/10/2023 Shruti, Created
+			10/02/2026 Kristan, Removed extra key columns
 */
-CREATE VIEW [reports].[DimAccount]
+CREATE    VIEW [reports].[DimAccount]
 AS
 	WITH AccPath AS
 	(
 		SELECT TRIM('|' FROM COALESCE(a3.AccountDescription, '') + '|' + COALESCE(a2.AccountDescription, '') + '|' + COALESCE(a1.AccountDescription, '')) AS AccountPath 
-		      ,a1.AccountKey, a1.ParentAccountKey, a1.AccountCodeAlternateKey, a1.ParentAccountCodeAlternateKey, a1.AccountDescription, a1.AccountType, a1.Operator, a1.CustomMembers, a1.ValueType, a1.CustomMemberOptions
+		      ,a1.AccountCode, a1.AccountDescription, a1.AccountType, a1.Operator, a1.CustomMembers, a1.ValueType, a1.CustomMemberOptions
 		FROM aw.DimAccount a1
 		LEFT JOIN aw.DimAccount a2
-			   ON a1.ParentAccountKey = a2.AccountKey
+			   ON a1.ParentAccountCode = a2.AccountCode
 		LEFT JOIN aw.DimAccount a3
-			   ON a2.ParentAccountKey = a3.AccountKey
+			   ON a2.ParentAccountCode = a3.AccountCode
 	),
 	DelPos AS 
 	(
 		SELECT CHARINDEX('|', AccountPath) AS Delimiter1
 		      ,CHARINDEX('|', AccountPath, CHARINDEX('|', AccountPath) + 1) AS Delimiter2
 			  ,CHARINDEX('|', AccountPath, CHARINDEX('|', AccountPath, CHARINDEX('|', AccountPath) + 1) + 1) AS Delimiter3
-			  ,AccountPath, AccountKey, ParentAccountKey, AccountCodeAlternateKey, ParentAccountCodeAlternateKey, AccountDescription, AccountType, Operator, CustomMembers, ValueType, CustomMemberOptions
+			  ,AccountPath, AccountCode, AccountDescription, AccountType, Operator, CustomMembers, ValueType, CustomMemberOptions
 		FROM AccPath
 	)
-	SELECT AccountKey, ParentAccountKey
-	      ,AccountCodeAlternateKey AS [Account Code]
+	SELECT AccountCode
 		  ,AccountDescription AS Account
 		  ,AccountType AS [Account Type], Operator
 		  ,ValueType AS [Value Type]

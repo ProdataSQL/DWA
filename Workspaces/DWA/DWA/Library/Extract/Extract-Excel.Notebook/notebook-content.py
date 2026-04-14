@@ -23,7 +23,7 @@
 # PARAMETERS CELL ********************
 
 SourceSettings = '{"directory" : "landing/AdventureWorks/erp", "file" : "*.xlsx", "sheet":"*"}'# See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_excel.html for excel options
-TargetSettings ='{"schema": "tst","mode":"overwrite" }'
+TargetSettings ='{"schema": "aw_stg","mode":"overwrite"}'
 ActivitySettings = '{"archiveDirectory":"","dedupe":null,"withChecksum":false}'
 SourceConnectionSettings = None
 TargetConnectionSettings = None
@@ -58,18 +58,23 @@ import sempy.fabric as fabric
 
 # CELL ********************
 
-source_connection_settings = json.loads(SourceConnectionSettings or "{}")
+source_connection_settings = json.loads(SourceConnectionSettings or '{}')
+target_connection_settings = json.loads(TargetConnectionSettings or '{}')
+source_settings = json.loads(SourceSettings or '{}')
+target_settings = json.loads(TargetSettings or '{}')
+activity_settings = json.loads(ActivitySettings or '{}')
+
 source_lakehouse_id = source_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 source_workspace_id = source_connection_settings.get("workspaceId",fabric.get_workspace_id())
 source_lakehouse_name = source_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=source_lakehouse_id, workspace=source_workspace_id))
 source_workspace_name = fabric.resolve_workspace_name(source_workspace_id)
 source = f"abfss://{source_workspace_id}@onelake.dfs.fabric.microsoft.com/{source_lakehouse_id}/Files"
 
-target_connection_settings = json.loads(TargetConnectionSettings or '{}')
 target_lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
 target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
 target_workspace_name = fabric.resolve_workspace_name(target_workspace_id)
+
 client = fabric.FabricRestClient()
 target_lakehouse_details=client.get(f"/v1/workspaces/{target_workspace_id}/lakehouses/{target_lakehouse_id}")
 default_schema=target_lakehouse_details.json().get("properties", {}).get("defaultSchema") # Check if schema is enabled and get default schema
@@ -81,38 +86,24 @@ default_schema=target_lakehouse_details.json().get("properties", {}).get("defaul
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+
 # CELL ********************
 
 archive = source # Assumes files are to be archive on the source workspace and lakehouse
-
-activity_settings = json.loads(ActivitySettings or "{}")
-dedupe = activity_settings.get("dedupe")
-with_checksum = bool(activity_settings.get("withChecksum"))
 archive_directory = activity_settings.get("archiveDirectory")
 
-source_settings = json.loads(SourceSettings or '{}')
-source_directory = source_settings["directory"]
+source_directory = source_settings.pop("directory")
 source_path = os.path.join(source, source_directory)
-del source_settings["directory"]
-source_file = source_settings["file"]
-del source_settings["file"]
+source_file = source_settings.pop("file")
 sheet_name = source_settings.pop("sheet_name", 0)
 dtype = source_settings.get("dtype")
-if dtype and isinstance(source_settings["dtype"],str):
-    source_settings["dtype"] = eval(source_settings["dtype"])
-if isinstance(dtype, dict):
-    source_settings['names']=list(dtype.keys())
-header_val = source_settings.get("header")
 
-target_settings = json.loads(TargetSettings or '{}')
 target_schema = target_settings.get("schema", "dbo")
 target = f"abfss://{target_workspace_id}@onelake.dfs.fabric.microsoft.com/{target_lakehouse_id}/Tables/{target_schema}"
-target_table = target_settings.get("table", source_file.split(".")[0]) 
-write_mode = target_settings.get("mode", "overwrite")
-if write_mode == "merge":
-   merge_condition = target_settings["condition"]
-   del target_settings["condition"]
-
+target_table = target_settings.get("table", os.path.splitext(source_file)[0])
+print(f"Target: {target}" )
 
 # METADATA ********************
 
@@ -123,6 +114,17 @@ if write_mode == "merge":
 
 # CELL ********************
 
+  
+write_mode = target_settings.get("mode", "overwrite") 
+if write_mode == "merge":
+   merge_condition = target_settings["condition"]
+   del target_settings["condition"]
+dedupe = activity_settings.get("dedupe")
+with_checksum = bool(activity_settings.get("withChecksum"))
+if "dtype" in source_settings and isinstance(source_settings["dtype"],str):
+    source_settings["dtype"] = eval(source_settings["dtype"])
+if isinstance(dtype, dict):
+    source_settings['names']=list(dtype.keys())
 if not mssparkutils.fs.exists(source_path) or len(mssparkutils.fs.ls(source_path)) == 0:
     mssparkutils.notebook.exit(0) # no folder to process, quit
 
@@ -141,7 +143,7 @@ else:
 if not files_to_process:
     print(f"No files matched pattern: {source_file}")
     mssparkutils.notebook.exit(0)
-print (f"Files: {files_to_process}")
+print (files_to_process)
 
 # METADATA ********************
 
@@ -186,24 +188,26 @@ for file in files_to_process:
     elif sheet_name == "":
         source_settings["sheet_name"] = 0
         print("Empty string passed as a sheet name, defaulting to first sheet.")
-    
-    if header_val == "None":
-        has_header, header = False, None
-    elif isinstance(header_val, bool):
-        has_header, header = header_val, (None if header_val else 1)
-    elif header_val == 0:
-        has_header, header = False, 0
-    else:
-        has_header, header = True, 0
-    source_settings["header"] = header
 
-    print(source_settings)
     if not sheet_name and sheet_name is not None:
         sheets = {excel_file.sheet_names[0] : excel_file.parse(**source_settings)}
     elif isinstance(sheet_name,str) and sheet_name != "*":
         sheets = {sheet_name : excel_file.parse(**source_settings)}
     else:
         sheets = excel_file.parse(**source_settings)
+
+
+    has_header : bool = True
+    if "header" in source_settings and source_settings["header"]=="None":
+        source_settings["header"] = None
+    
+    # First Row as Header normalization
+    if "header" in source_settings:
+        if isinstance(source_settings["header"], bool):
+            has_header = source_settings["header"]
+            source_settings["header"] = None if has_header else 1
+        elif source_settings["header"] == 0:
+            has_header = False
     
     do_drop = write_mode == "overwrite"
     for sheet, df in sheets.items():
@@ -216,12 +220,12 @@ for file in files_to_process:
         rename_map = dict(zip(df.columns, clean_headers))
         df.reset_index(inplace=True)
         if len(sheets) > 1:
-            table_name =  f"{source_file_base_name}_{sheet}"
+            table =  f"{source_file_base_name}_{sheet}"
         else:
             if target_table =="*":
                 table = f"{source_file_base_name}"
             else:
-                 table = target_table
+                table = target_table
         table_path = os.path.join(target, table)
         # checksum added BEFORE file and LineageKey columns (obviously)
         if with_checksum:
@@ -230,6 +234,7 @@ for file in files_to_process:
             df = df.drop_duplicates(["RowChecksum"]) if with_checksum else df.drop_duplicates(clean_headers)
         df.rename(columns={'index': 'RowNumber'}, inplace=True)
         df = df.rename(columns=rename_map).assign(LineageKey=LineageKey).assign(FileName=os.path.basename(file))
+        print (f"- Read  {in_row_count} rows from '{sheet}' in '{file}'")
 
         # Write to delta/LH using Spark
         t = datetime.now()
@@ -245,8 +250,7 @@ for file in files_to_process:
 
         end_time = datetime.now()
 
-        print (f"- Read  {in_row_count} rows from '{sheet}' in '{file}'"
-        f". Wrote {out_row_count} rows to {target_schema}.{table} in {(end_time-t).total_seconds():.2f} seconds"  )
+        print(f". Wrote {out_row_count} rows to {target_schema}.{table} in {(end_time-t).total_seconds():.2f} seconds"  )
     if archive_directory:
         date = file_date or t # gets date from file name or current date
         archive_folder = os.path.join(archive_directory,date.strftime("%Y"),date.strftime("%m"))

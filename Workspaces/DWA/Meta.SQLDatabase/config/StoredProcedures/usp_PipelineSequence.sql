@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 /*
 Description:	Retrieve Array of PipelineOrder for Which Pipelines to run in which sequence
 Used By:		ADF Pipeline-Controller 
@@ -20,7 +13,7 @@ History:
 	27/08/2024 Aidan, Implemented package group hierarchy
 	29/08/2024 Bob, Trigger build of meta data cache if needed
 	01/11/2024 Kristan, Added PackageGroup coalesce for PipelineGroups
-	11/11/2024 Aiddan, Changed join to Pipelinegroups to a Left join
+	11/11/2024 Aidan, Changed join to Pipelinegroups to a Left join
 
 */
 CREATE   PROC [config].[usp_PipelineSequence] 

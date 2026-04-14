@@ -106,8 +106,8 @@ activity_settings = json.loads(ActivitySettings or "{}")
 dedupe = bool(activity_settings.get("dedupe"))
 with_checksum = bool(activity_settings.get("withChecksum"))
 archive_directory = activity_settings.get("archivedirectory")
-column_names = source_settings.pop("names", None)
 source_settings.setdefault("header", True)
+column_names = source_settings.pop("names", None)
 
 # METADATA ********************
 
@@ -135,6 +135,7 @@ if not mssparkutils.fs.exists(source_path) or len(mssparkutils.fs.ls(source_path
 file_list = mssparkutils.fs.ls(source_path)
 if len(file_list) == 0:
     mssparkutils.notebook.exit(0) # no files to process, quit
+##
 if source_file:
     files_to_process = [
         os.path.join(source_path, f.name)
@@ -211,6 +212,8 @@ for table_files in Files:
             archive_path = os.path.join(archive,archive_folder,os.path.basename(file))
             print(f"Archiving {file} to {archive_folder}.")
             mssparkutils.fs.mv(file, archive_path, True, True)
+
+
 
 # METADATA ********************
 

@@ -17,6 +17,16 @@
 
 # CELL ********************
 
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
 import json
 import time
 from pyspark.sql import functions as fn

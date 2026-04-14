@@ -18,6 +18,7 @@
 
 # PARAMETERS CELL ********************
 
+LakehouseConnectionSettings='{"lakehouse":"Fabric_LH", "lakehouseId":"f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c", "workspaceId":"9b8a6500-5ccb-49a9-885b-b5b081efed75"}'
 
 # METADATA ********************
 
@@ -34,14 +35,22 @@ from pyspark.sql import functions as fn
 from datetime import datetime
 import sempy.fabric as fabric
 from sempy.fabric.exceptions import FabricHTTPException
-workspace_id = spark.conf.get("trident.workspace.id")
-lakehouse_id = spark.conf.get("trident.lakehouse.id")
-if not lakehouse_id:
-    raise Exception("No lakehouse is attached to this notebook.")
+lakehouse_connection_settings = json.loads(LakehouseConnectionSettings or '{}')
+workspace_id = lakehouse_connection_settings['workspaceId']
+lakehouse_id = lakehouse_connection_settings['lakehouseId']
+lakehouse = lakehouse_connection_settings['lakehouse']
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "jupyter_python"
+# META }
+
+# CELL ********************
+
 client = fabric.FabricRestClient()
-
 sql_endpoint_id = client.get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}").json()['properties']['sqlEndpointProperties']['id']
-
 md_sync_start_time = datetime.now()
 
 try:
@@ -100,11 +109,11 @@ if progressState == 'success':
     ]
     if not table_details:
         print("No tables synced!")
-        mssparkutils.notebook.exit(0)
-
-    print("Tables synced:")
-    for detail in table_details:
-        print(f"Table: {detail['tableName']}\n\t - tableSyncState: {detail['tableSyncState']}\n\t - Warnings: {detail['warningMessages']}")
+        
+    else:
+        print("Tables synced:")
+        for detail in table_details:
+            print(f"Table: {detail['tableName']}\n\t - tableSyncState: {detail['tableSyncState']}\n\t - Warnings: {detail['warningMessages']}")
 else:
     raise MDSyncFailed(json.dumps(statusresponsedata))
 

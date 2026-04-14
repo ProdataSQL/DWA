@@ -19,10 +19,11 @@ History:
 	16/04/2025 Kristan, Hash identity method fix
 	01/05/2025 Shruti,  Added Collation checks to manage Case-sensitivity.
 	26/08/2025 Kristan, Issue with integers passed as Bks for identity method.
-	12/11/2025 Bob, Fixed Issue with SQL Size > 8000 chars
+	12/11/2025 Bob, Fixed Issue with SQL Size > 8000 chars ( Backport from production )
+	23/01/2026 Bob,		Added SCD Supprt
 
 */
-CREATE   PROC [dwa].[usp_TableLoad] @TargetObject [nvarchar](512) =NULL, @TableID [int]= NULL, @RunID uniqueidentifier = NULL AS
+CREATE       PROC [dwa].[usp_TableLoad] @TargetObject [nvarchar](512) =NULL, @TableID [int]= NULL, @RunID uniqueidentifier = NULL AS
 BEGIN
 	BEGIN TRY
 	SET NOCOUNT ON 
@@ -146,6 +147,9 @@ BEGIN
 	LEFT JOIN Meta.config.IdentityMethods im on im.IdentityMethod=coalesce(t.IdentityMethod,'Hash-MD5') --Default IdentityMethod
 	WHERE t.TableID = @TableID
 
+	IF @SCD =1
+		SELECT @LineageColumns = @LineageColumns + ',FromDate', @RowChecksum=1, @UpdateFlag=1, @InsertFlag=-1
+
 	IF @@LANGUAGE <> @Language  and coalesce(@Language,'' ) <> ''
 	BEGIN
 		IF @Language ='British'
@@ -181,7 +185,7 @@ BEGIN
 
 	SELECT  @SourceObjectID = OBJECT_ID(@SourceObject),  @TargetObjectID = OBJECT_ID(@TargetObject)
 	, @BusinessKeyCount = (SELECT COUNT(*) FROM string_split(@BusinessKeys,','))
-	IF @SourceObjectID is null
+	IF @SourceObjectID is null and @SourceType <>'Proc'
 		raiserror ('Missing Source Object [%s]. Check artefact exists.',16,1,@SourceObject)
 	SELECT @SourceColumnList = '' + (SELECT STRING_AGG(c.name, ',') FROM sys.columns c WHERE c.object_id = @SourceObjectID)
 	IF @TargetObjectID is not null 
@@ -224,7 +228,7 @@ BEGIN
 			PRINT '/* Skip Condition True(' + @SkipSqlCondition + '). Load Skipped */'
 	END
 
-	IF object_id(@SourceObject) IS NULL AND @Skip = 0
+	IF object_id(@SourceObject) IS NULL AND @Skip = 0 AND @SourceType <> 'Proc'
 		RAISERROR ('SourceObject %s not found. Check Meta.config.edwTables for TableID %i', 16, 1, @SourceObject, @TableID)
 
 	IF @DedupeFlag =1 and @skip=0
@@ -260,7 +264,7 @@ BEGIN
 		exec (@sql)	
 	END
 	ELSE IF @SourceType ='View' and @Skip=0
-	BEGIN	
+	BEGIN			
 		/* Check if collation between Lakehouse and Data Warehouse is different */
 		SELECT @TargetCollation = CONVERT(sysname, DATABASEPROPERTYEX(db_name(), 'Collation'))
 		SELECT TOP 1 @SourceCollation = collation_name FROM sys.columns 
@@ -269,6 +273,7 @@ BEGIN
 			   WHERE object_id = object_id(@SourceObject) AND collation_name IS NOT NULL AND collation_name <> @TargetCollation
 		IF COALESCE(@SourceCollation, @TargetCollation) <> @TargetCollation
 			SET @ForceCollation = 1
+
 		/* Update Logic */	
 		IF @DedupeFlag=1
 			SET @HideColumns =coalesce(@HideColumns + ',','')  + 'RowVersionNo';
@@ -307,7 +312,7 @@ BEGIN
 		WHERE j.TableID=@TableID
 		ELSE
 			SET @BusinessKeysQualified = (SELECT STRING_AGG(@TablePrefix + '.' + TRIM(value), ', ') FROM STRING_SPLIT(@BusinessKeys, ','));
-	
+
 		IF @BusinessKeys IS NOT NULL 
 			SET @WhereJoinSQL=null
 		ELSE
@@ -339,12 +344,25 @@ BEGIN
 					and (ShowBK is null or ShowBK=0))
 				SET @HideColumns = coalesce(@HideColumns+ ',' ,'') +@VarHideCols				
 			END
+		IF @SCD=1
+			SET @HideColumns =coalesce(@HideColumns + ',','') +  ',FromDate,ToDate,IsCurrent'
 
 		SELECT @InsertColumns = case when @InsertColumns is null then '' else @InsertColumns + ',' end + (SELECT string_agg( c.name, ',') FROM sys.columns c WHERE c.object_id = @SourceObjectID and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns,','))   )
 		,@SelectColumns = case when @SelectColumns is null then '' else @SelectColumns + ',' end + (SELECT string_agg(  @TablePrefix + '.' + c.name + CASE WHEN @ForceCollation = 1 AND c.collation_name <> @TargetCollation THEN ' COLLATE ' + @TargetCollation + ' AS ' + c.name ELSE '' END, ',') FROM sys.columns c WHERE c.object_id = @SourceObjectID and c.name NOT IN (SELECT ltrim(value) from string_split(@HideColumns ,',')  ) )
 		,@RowVersionNoFlag = CASE WHEN EXISTS (SELECT * FROM sys.columns sc WHERE  object_id = @SourceObjectID and name='RowVersionNo') then 1 else 0 end 
+		
+		/* SCD Logic for Columns */
+		IF @SCD=1
+		BEGIN
+			IF exists (select * from string_split(@InsertColumns, ',' ) where value IN ('ToDate','IsCurrent'))
+				RAISERROR ('Source Object cannot contain ToDate or IsCurrent for SCD Support',16,1)
+			SET @InsertColumns = @InsertColumns + ',FromDate,ToDate,IsCurrent'
+			SET @SelectColumns = @SelectColumns + ',' + @TablePrefix + '.FromDate,''2999-12-31'' AS ToDate, convert(bit,1) as IsCurrent'
+		END
+
 
 		/* Adding Identity */
+
 		IF @Identity = 1 AND @PrimaryKey is null
 			RAISERROR ('Unsupported Identity=1 AND PrimaryKey not defined for Table %s. Check Meta.config.edwTables.',16,1, @TargetTable)	
 		IF @Identity = 1 AND @Exists=1 AND @IdentityExpression like 'ROW_NUMBER%'
@@ -358,10 +376,12 @@ BEGIN
 		BEGIN
 			SET @InsertColumns=@PrimaryKey +','+ @InsertColumns
 			SELECT @CastBusinessKeys = STRING_AGG('cast(' + value + ' AS nvarchar(4000))', ',') FROM STRING_SPLIT(@BusinessKeys, ',');
+			IF @SCD=1 SET @CastBusinessKeys = @CastBusinessKeys + '+ convert(varchar(8),' + @TablePrefix + '.FromDate,112)' 
 			SET @SelectColumns = REPLACE(REPLACE(@IdentityExpression, '@BKs', @CastBusinessKeys),'@MaxID', CONVERT(varchar(4000), @MaxIdentity)) + ' AS ' + QUOTENAME(@PrimaryKey) + ',' + @SelectColumns;
 		END
 		ELSE IF @Identity=1 AND @BusinessKeys is null
 		RAISERROR ('Unsupported Identity=1 AND BusinessKeys not defined for Table %s. Check Meta.config.edwTables.',16,1,@TargetTable)
+
 		SELECT @PrimaryKey=replace(@TargetTable, 'Dim','') + 'Key'
 
 		IF @PrestageSourceFlag=1
@@ -371,15 +391,16 @@ BEGIN
 				SET @SourceObject = @PrestageSourceTable
 			END			
 		PRINT '/*' + char(13) + char(10) + 'exec dwa.usp_TableLoad @TargetObject=''' + @TargetObject+''',@TableID=' + convert(varchar, @TableID) + ',@RunID=''' + convert (varchar(255), @RunID) +'''' +  char(13) + char(10) + '*/' ;
-
+		
 		DECLARE @UpdateColumnList varchar(4000) = CASE WHEN @RelatedTableCount > 1 THEN @TargetColumnList ELSE @SourceColumnList END;
-		SET @UpdateColumns = (	SELECT string_agg (convert(varchar(max),'t.' + c.value + '=' + @TablePrefix + '.' + c.value)  , ',') FROM string_split(@UpdateColumnList,',')  c WHERE  
+		SET @UpdateColumns = (	SELECT string_agg (convert(varchar(max), 't.' + c.value + '=' + @TablePrefix + '.' + c.value)  , ',') FROM string_split(@UpdateColumnList,',')  c WHERE  
 						c.value not in (SELECT value from string_split(@BusinessKeys,','))
 						AND c.value NOT IN (SELECT ltrim(value) from string_split(@HideColumns,','))
 						AND c.value NOT IN (SELECT ltrim(value) from string_split(@LineageColumns,','))
 						AND c.value <> @PrimaryKey
 		)
- 
+		
+			   
 		/* Add Rowchecksum */
 		SELECT @NonKeyColumns = (select string_agg(value,',') from string_split(@SourceColumnList, ',') c 
 								WHERE c.value <> @PrimaryKey
@@ -417,6 +438,7 @@ BEGIN
 				EXEC [dwa].[usp_TableLoad_DeploySchemaDrift] @TableID = @TableID
 		END	
 	
+
 		/*CTAS*/
 		IF @CTAS =1 and @Skip=0		
 		BEGIN
@@ -428,9 +450,7 @@ BEGIN
 				SELECT @sqlWhereOuter=null, @CTAS =0, @JoinSQL=NULL, @SqlWhere=null, @SourceObject=@PrestageTargetObject, @TargetObject=@TargetObjectFinal
 			ELSE
 				SELECT @InsertFlag=0, @UpdateFlag=0,@DeleteFlag=0
-		END
-			
-
+		END		
 		ELSE IF @Skip=0
 		BEGIN
 			IF OBJECT_ID(@TargetObject) IS NULL
@@ -440,9 +460,8 @@ BEGIN
 				SET @SqlWhere = coalesce(@SqlWhere + ' AND ', 'WHERE ') + 'NOT (' + @TablePrefix + '.' + @DeleteDDL + ')'			
 		END 	
 
-		/*INSERT*/
-		IF @InsertFlag=1
-			EXEC [dwa].[usp_TableLoad_Insert] @TableID=@TableID,@TargetObject= @TargetObject,@SourceObject=@SourceObject,@InsertColumns=@InsertColumns,@SelectColumns=@SelectColumns, @JoinSQL=@JoinSQL, @SqlWhere=@sqlwhere, @WhereJoinSQL= @WhereJoinSQL, @Exists=@Exists,@TablePrefix=@TablePrefix,@BusinessKeys=@BusinessKeys,@PrestageTargetFlag=@PrestageTargetFlag,@PrestageTargetObject=@PrestageTargetObject,@SqlWhereOuter=@SqlWhereOuter
+		IF @SCD=1 AND @Exists =1
+			SELECT @InsertFlag =1, @UpdateFlag=1, @DeleteFlag=0
 
 				
 		/*UPDATE*/
@@ -450,8 +469,14 @@ BEGIN
 		BEGIN
 			IF @DeleteDDL is not null 				
 				SET @SqlWhere ='WHERE NOT (' + @TablePrefix + '.' + @DeleteDDL + ')'
-				EXEC [dwa].[usp_TableLoad_Update] @TableID=@TableID,@TargetObject= @TargetObject,@SourceObject=@SourceObject,@UpdateColumns=@UpdateColumns,@SelectColumns=@SelectColumns, @JoinSQL=@JoinSQL, @SqlWhere=@sqlwhere, @WhereJoinSQL= @WhereJoinSQL, @Exists=@Exists,@TablePrefix=@TablePrefix,@BusinessKeys=@BusinessKeys, @PrestageTargetFlag=@PrestageTargetFlag, @SqlWhereOuter=@SqlWhereOuter	
+				EXEC [dwa].[usp_TableLoad_Update] @TableID=@TableID,@TargetObject= @TargetObject,@SourceObject=@SourceObject,@UpdateColumns=@UpdateColumns,@SelectColumns=@SelectColumns, @JoinSQL=@JoinSQL, @SqlWhere=@sqlwhere, @WhereJoinSQL= @WhereJoinSQL, @Exists=@Exists,@TablePrefix=@TablePrefix,@BusinessKeys=@BusinessKeys, @PrestageTargetFlag=@PrestageTargetFlag, @SqlWhereOuter=@SqlWhereOuter	, @SCD=@SCD
 		END	
+
+		/*INSERT*/
+		IF @InsertFlag=1
+		BEGIN
+			EXEC [dwa].[usp_TableLoad_Insert] @TableID=@TableID,@TargetObject= @TargetObject,@SourceObject=@SourceObject,@InsertColumns=@InsertColumns,@SelectColumns=@SelectColumns, @JoinSQL=@JoinSQL, @SqlWhere=@sqlwhere, @WhereJoinSQL= @WhereJoinSQL, @Exists=@Exists,@TablePrefix=@TablePrefix,@BusinessKeys=@BusinessKeys,@PrestageTargetFlag=@PrestageTargetFlag,@PrestageTargetObject=@PrestageTargetObject,@SqlWhereOuter=@SqlWhereOuter,@SCD=@SCD
+		END
 
 		/*DELETE*/
 		IF coalesce(@DeleteFlag,1) =1 and @Exists=1 and @DeleteDDL is not null and @Skip=0
@@ -474,7 +499,6 @@ BEGIN
 			PRINT ''
 			EXEC (@PostLoadSQL)
 		END
-	
 	END TRY
 
 	BEGIN CATCH

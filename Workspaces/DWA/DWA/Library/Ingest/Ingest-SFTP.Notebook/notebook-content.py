@@ -8,9 +8,14 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": [
+# META         {
+# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
+# META         }
+# META       ]
 # META     }
 # META   }
 # META }
@@ -24,11 +29,11 @@
 
 # PARAMETERS CELL ********************
 
-SourceConnectionSettings = '{"host":"prodatasftp.blob.core.windows.net", "userName":"prodatasftp.prodata", "port":22, "keyVault":"https://kv-fabric-dev.vault.azure.net/", "secret":"prodata-sftp-password"}'
-SourceSettings = '{"directory": "aw/", "file": "*.*" }'
-TargetConnectionSettings = None
-TargetSettings = '{"directory": "Files/landing/aw"}'
-LineageKey = 0
+SourceConnectionSettings='{"host":"prodatasftp.blob.core.windows.net", "userName":"prodatasftp.prodata", "port":22, "keyVault":"https://kv-fabric-dev.vault.azure.net/", "secret":"prodata-sftp-password"}'
+SourceSettings='{"directory": "aw/", "file": "*.*" }'
+TargetConnectionSettings=None
+TargetSettings='{"directory": "Files/landing/aw"}'
+LineageKey= 0
 
 # METADATA ********************
 
@@ -46,6 +51,7 @@ import json
 import regex as re
 import sempy.fabric as fabric
 import pandas as pd
+import tempfile
 import shutil
 
 source_connection_settings = json.loads(SourceConnectionSettings or '{}')
@@ -62,13 +68,11 @@ source_delete = bool(source_settings.get("delete", False))
 if "file" in source_settings:
     del source_settings["file"]
 
-
 target_connection_settings = json.loads(TargetConnectionSettings or '{}')
 lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
 workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
 lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=lakehouse_id, workspace=workspace_id))
 workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(workspace_id, "Unknown")
-
 
 target_settings = json.loads(TargetSettings or '{}')
 target_directory = target_settings["directory"]
@@ -112,19 +116,17 @@ for index, file_name in enumerate(files):
     remote_path = os.path.join(source_directory, file_name).replace("\\", "/")
     if not contains_wildcard and target_file:
         file_name = target_file
-    mssparkutils.fs.mkdirs(target)
-    target_path = os.path.join(f'/lakehouse/default/Files', target_directory, file_name)
-    
+    target_path = os.path.join("/lakehouse/default/Files", target_directory, file_name)
+    mssparkutils.fs.mkdirs(os.path.join('Files',target_directory))
     with open(target_path, 'wb') as f:
         with sftp.open(remote_path, 'rb') as sftp_file:
             file_data = sftp_file.read()
             f.write(file_data)
     print(f"Written '{remote_path}' to '{lakehouse_name}/Files/{target_directory}/{file_name}'", end="")
-
+    
     if source_delete:
         sftp.remove(remote_path)
         print(" and has been deleted", end="")
-    
     print(f". ({index + 1}/{len(files)})")
 
 sftp.close()

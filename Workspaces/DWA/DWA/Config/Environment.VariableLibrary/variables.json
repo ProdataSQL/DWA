@@ -14,7 +14,7 @@
       "value": "fe70c606-af27-4f64-973a-2be877526212"
     },
     {
-      "name": "SQLConnectionString",
+      "name": "DWServerName",
       "note": "",
       "type": "String",
       "value": "fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com"
@@ -41,7 +41,7 @@
       "name": "DataPipelinesConnectionID",
       "note": "",
       "type": "String",
-      "value": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+      "value": "aae6c34c-53da-426d-885f-27ec363b6cad"
     },
     {
       "name": "DefaultLakehouseID",

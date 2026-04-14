@@ -8,12 +8,12 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960",
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
 # META       "known_lakehouses": [
 # META         {
-# META           "id": "d58f4f2d-59d7-406d-ae4c-898354a6a75f"
+# META           "id": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c"
 # META         }
 # META       ]
 # META     }
@@ -87,32 +87,22 @@ target_workspace_id = target_connection_settings.get("workspaceId",fabric.get_wo
 target_lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=target_lakehouse_id, workspace=target_workspace_id))
 target_workspace_name = workspaces.set_index("Id")["Name"].to_dict().get(target_workspace_id, "Unknown")
 
-TargetSettings = TargetSettings or "{}"
-SourceSettings = SourceSettings or "{}"
-
-target_settings = json.loads(TargetSettings or "{}")
 source_settings = json.loads(SourceSettings or "{}")
-
 source_directory = source_settings["directory"]
 source_file = source_settings["file"]
-
 FILES_PREFIX = "Files"
 if not source_directory.startswith(FILES_PREFIX):
     source_directory = os.path.join(FILES_PREFIX, source_directory)
-
 LAKEHOUSE_PREFIX = "/lakehouse/default"
 if not source_directory.startswith(LAKEHOUSE_PREFIX):
     source_directory = os.path.join(LAKEHOUSE_PREFIX, source_directory)
-
-target_schema = target_settings.get("schema", "dbo") 
-target_table = target_settings.get("table", source_file.split(".")[0])
-
-if target_schema != "dbo":
-    target_table = f"{target_schema}_{target_table}"
-
-
 file_path= os.path.join(source_directory, source_file)
 
+target_settings = json.loads(TargetSettings or "{}")
+target_schema = target_settings.get("schema", "dbo") 
+target_table = target_settings.get("table", source_file.split(".")[0])
+if target_schema != "dbo":
+    target_table = f"{target_schema}_{target_table}"
 mode = target_settings.get("mode","overwrite")
 
 

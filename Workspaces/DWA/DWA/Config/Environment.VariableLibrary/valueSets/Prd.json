@@ -1,5 +1,14 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/valueSet/1.0.0/schema.json",
   "name": "Prd",
-  "variableOverrides": []
+  "variableOverrides": [
+    {
+      "name": "DWServerName",
+      "value": "fkm4vwf6l6zebg4lqrhbtdcmsq-yctecwmyrr4u3mdfun4j5hqjma.datawarehouse.fabric.microsoft.com"
+    },
+    {
+      "name": "DataPipelinesConnectionID",
+      "value": "aae6c34c-53da-426d-885f-27ec363b6cad"
+    }
+  ]
 }

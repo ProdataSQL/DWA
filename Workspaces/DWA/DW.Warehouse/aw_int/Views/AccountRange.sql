@@ -2,6 +2,8 @@
 
 
 
+
+
 /* Description: AW Staging AccountRange
    Example: EXEC dwa.usp_TableLoad NULL,4,NULL
    History: 
@@ -22,4 +24,4 @@ SELECT [ReportNo]
 	  ,[Calc1] as Calc1
 	  ,[FileName]
 	  ,ISNULL(CONVERT(VARCHAR(36),LineageKey),0) AS LineageKey
-  FROM LH.aw_stg.[accountrange]
+  FROM LH.aw_stg.[AccountRange]

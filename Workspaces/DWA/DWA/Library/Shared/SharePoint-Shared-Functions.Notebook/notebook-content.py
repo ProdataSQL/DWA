@@ -5,8 +5,7 @@
 # META {
 # META   "kernel_info": {
 # META     "name": "synapse_pyspark"
-# META   },
-# META   "dependencies": {}
+# META   }
 # META }
 
 # MARKDOWN ********************
@@ -15,10 +14,24 @@
 # 
 # This notebook provides functions to interact with SharePoint using Microsoft Graph API. It supports authentication via Azure Active Directory, retrieves SharePoint site, drive, and list details, and allows for operations like fetching files, columns, and rows, including handling wildcards for file searches. It includes error handling for missing resources, making it suitable for automating data retrieval from SharePoint and integrating with other data processing workflows.
 
+
 # CELL ********************
 
 import uuid
 import fnmatch
+import requests
+import base64
+import json
+import time
+def is_token_expired(token) -> bool:
+    try:
+        payload_part = token.split('.')[1]
+        payload_part += '=' * (-len(payload_part) % 4)  # fix padding
+        payload = json.loads(base64.urlsafe_b64decode(payload_part))
+        return payload.get('exp', 0) < time.time()
+    except Exception as e:
+        print(f"Issue parsing token to check for expiry {e}")
+        return True
 
 def is_uuid(input: str) -> bool:
     try:
@@ -26,8 +39,27 @@ def is_uuid(input: str) -> bool:
         return True
     except ValueError:
         return False
+
+parent_tenant_id = None
+parent_client_id = None
+parent_keyvault = None
+parent_client_secret_name = None
+headers = None
 # Requires keyvault, client_secret_name, client_id, client_secret, tenant_id, site_name and sharepoint_url must be set to call SharePoint-Auth-Site 
 def get_sharepoint_token(tenant_id: str, client_id: str, keyvault : str, client_secret_name : str) -> str:
+    global parent_tenant_id
+    global parent_client_id
+    global parent_keyvault
+    global parent_client_secret_name
+
+    if parent_tenant_id  is None:
+        parent_tenant_id = tenant_id
+    if parent_client_id  is None:
+        parent_client_id = client_id
+    if parent_keyvault is None:
+        parent_keyvault = keyvault
+    if parent_client_secret_name  is None:
+        parent_client_secret_name = client_secret_name
     if  ".vault.azure.net" not in keyvault:
         keyvault = f"https://{keyvault}.vault.azure.net/"
     if not is_uuid(client_id):
@@ -42,6 +74,41 @@ def get_sharepoint_token(tenant_id: str, client_id: str, keyvault : str, client_
     token_response = requests.post(f"https://login.microsoftonline.com/{tenant_id}/oauth2/token", data=token_request_body)
     token_response.raise_for_status()
     return token_response.json()["access_token"]
+
+def get_sharepoint_headers(headers=None):
+    global parent_tenant_id
+    global parent_client_id
+    global parent_keyvault
+    global parent_client_secret_name
+    if not(parent_tenant_id and parent_client_id and parent_keyvault and parent_client_secret_name):
+        raise RuntimeError("func `get_sharepoint_token` must be called correctly before any calls to Sharepoint library functions can be executed.")
+    if headers is None:
+        access_token = get_sharepoint_token(
+            parent_tenant_id, parent_client_id, parent_keyvault, parent_client_secret_name
+        )
+        return {'Authorization': f'Bearer {access_token}'}
+
+    else:
+        auth = headers.get("Authorization")
+
+        if not auth or not auth.startswith("Bearer "):
+            access_token = get_sharepoint_token(
+                parent_tenant_id, parent_client_id, parent_keyvault, parent_client_secret_name
+            )
+            headers["Authorization"] = f'Bearer {access_token}'
+            return headers
+
+        token = auth.split(" ")[1]
+
+        if is_token_expired(token):
+            access_token = get_sharepoint_token(
+                parent_tenant_id, parent_client_id, parent_keyvault, parent_client_secret_name
+            )
+            headers["Authorization"] = f'Bearer {access_token}'
+
+        return headers
+
+
 class SharePointSiteNotFoundException(Exception):
     pass
 class SharePointDriveNotFoundException(Exception):
@@ -55,7 +122,7 @@ def get_sharepoint_header(access_token: str) -> dict:
 def get_sharepoint_site(sharepoint_url:str, site_name: str, headers: dict) -> dict:
     site_name  = site_name if "/"  in site_name else f"sites/{site_name}"
     site_url = f"https://graph.microsoft.com/v1.0/sites/{sharepoint_url}:/{site_name}"
-    site_response = requests.get(site_url, headers=headers)
+    site_response = requests.get(site_url, headers=get_sharepoint_headers(headers))
     if site_response.status_code == 404:
         try: site_response.raise_for_status()
         except e: raise ExceptionGroup("", [SharePointSiteNotFoundException(f"{site_name} was not found."), e])
@@ -65,7 +132,7 @@ def get_sharepoint_drive(site: dict, drive_name: str, headers: dict) -> dict:
     site_id = site["id"]
     site_name = site["name"] 
     drives_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives/"
-    drives_response = requests.get(drives_url, headers=headers)
+    drives_response = requests.get(drives_url, headers=get_sharepoint_headers(headers))
     drives_response.raise_for_status()
     drives = drives_response.json()['value']
     selected_drive = next(
@@ -84,12 +151,12 @@ def get_sharepoint_file_info(site_id:str, drive_id:str, file_path: str,headers:d
         file_path = f"root:/{file_path}"
     file_path = f"/{file_path}"
     files_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives/{drive_id}{file_path}"
-    files_response = requests.get(files_url, headers=headers)
+    files_response = requests.get(files_url, headers=get_sharepoint_headers(headers))
     files_response.raise_for_status()
     return files_response.json()
 def get_sharepoint_list(site_id:str, list_name: str,headers:dict) -> dict: 
     lists_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/lists?$select=name,id,displayName,webUrl"
-    lists_response = requests.get(lists_url, headers=headers)
+    lists_response = requests.get(lists_url, headers=get_sharepoint_headers(headers))
     lists_response.raise_for_status()
     lists = lists_response.json()['value']
     selected_list = next(
@@ -104,7 +171,7 @@ def get_sharepoint_list(site_id:str, list_name: str,headers:dict) -> dict:
     return selected_list
 def get_sharepoint_list_column_rename_map(site_id: str, list_id: str,headers:dict) -> dict:
     columns_list_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/lists/{list_id}?expand=columns"
-    columns_response = requests.get(columns_list_url, headers=headers)
+    columns_response = requests.get(columns_list_url, headers=get_sharepoint_headers(headers))
     columns_response.raise_for_status()
     data = columns_response.json()
     column_rename_map = {}
@@ -116,7 +183,7 @@ def get_sharepoint_list_rows(site_id:str, list_id: str):
     list_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/lists/{list_id}/items?expand=columns,items(expand=fields)"
     all_items = []
     while list_url:
-        list_response = requests.get(list_url, headers=headers)
+        list_response = requests.get(list_url, headers=get_sharepoint_headers(headers))
         list_response.raise_for_status()
         data = list_response.json()
         all_items.extend(data['value'])
@@ -145,7 +212,7 @@ def get_sharepoint_files_wildcard(
  
     def list_files(directory: str, relative_path: str = "", is_first_level: bool = False) -> list[dict]:
         url = f"{base_url}{directory}:/children?$select=name,id,folder"
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=get_sharepoint_headers(headers))
         response.raise_for_status()
         items = response.json().get("value", [])
  
@@ -169,8 +236,11 @@ def get_sharepoint_files_wildcard(
 
 def delete_sharepoint_file(drive_id: str, file_path:str):
     delete_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/{file_path}"
-    resp = requests.delete(delete_url, headers=headers)
+    resp = requests.delete(delete_url, headers=get_sharepoint_headers(headers))
     resp.raise_for_status()
+
+
+
 
 # METADATA ********************
 

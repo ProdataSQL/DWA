@@ -1,19 +1,16 @@
--- Auto Generated (Do not modify) A4F44FC40CF68B5A9C4888A0A20C9C54B3026E6598F2F6AF63937934C1F594D2
-
-
-
+-- Auto Generated (Do not modify) 5CA9A03EB65C3360668826CD370CA490F22F0F186A83F1860FAA2300871EA2E6
 /* Description: AW DimDepartmentGroup for PowerBI Model
 
    History: 
-			21/02/2025 Created
+			26/10/2023 Shruti, ALTERd
 */
-CREATE VIEW [reports].[FactFinance]
+CREATE   VIEW [reports].[FactFinance]
 AS
 SELECT DateKey
 	  ,DepartmentGroupKey
 	  ,ScenarioKey
 	  ,OrganizationKey
-	  ,CONVERT(MONEY, Amount * CASE WHEN a.AccountType IN ('Expenditures', 'Liabilities') THEN -1 ELSE 1 END) AS BaseAmount
+	  ,CONVERT(DECIMAL(18,2), Amount * CASE WHEN a.AccountType IN ('Expenditures', 'Liabilities') THEN -1 ELSE 1 END) AS BaseAmount
 	  ,f.AccountKey
 	  ,Date 
 FROM aw.FactFinance f 

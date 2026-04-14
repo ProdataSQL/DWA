@@ -3,8 +3,9 @@ Description:	INSERT Operation for Table Load framework - Execute main usp_TableL
 Example: exec dwa.[usp_TableLoad] 'aw.FactFinance',NULL,NULL
 		 exec dwa.[usp_TableLoad] NULL, 1,NULL
 History:		03/08/2023 Deepak, Created	
+				25/01/2026 Bob, Added SCD
 */
-CREATE   PROC [dwa].[usp_TableLoad_Insert] @TableID [int],@TargetObject [sysname],@SourceObject [sysname],@InsertColumns [nvarchar](max),@SelectColumns [nvarchar](max),@JoinSQL [nvarchar](max),@SqlWhere [nvarchar](max),@WhereJoinSQL [nvarchar](max),@Exists [bit], @TablePrefix sysname,@BusinessKeys varchar(4000), @PrestageTargetFlag bit,@PrestageTargetObject sysname, @SqlWhereOuter varchar(4000)  AS
+CREATE       PROC [dwa].[usp_TableLoad_Insert] @TableID [int],@TargetObject [sysname],@SourceObject [sysname],@InsertColumns [nvarchar](max),@SelectColumns [nvarchar](max),@JoinSQL [nvarchar](max),@SqlWhere [nvarchar](max),@WhereJoinSQL [nvarchar](max),@Exists [bit], @TablePrefix sysname,@BusinessKeys varchar(4000), @PrestageTargetFlag bit,@PrestageTargetObject sysname, @SqlWhereOuter varchar(4000) , @SCD bit AS
 BEGIN
 	SET NOCOUNT ON
 	DECLARE @sql nvarchar(max)	      
@@ -24,13 +25,15 @@ BEGIN
 	BEGIN		    
 		SELECT @JoinSQL = coalesce('WHERE '  + @SqlWhereOuter + CHAR(13) + 'AND ' , 'WHERE ' ) + 'NOT EXISTS (SELECT * FROM ' + @TargetObject + ' t WHERE '
 		IF @WhereJoinSQL IS NOT NULL
-			SELECT @JoinSQL = @JoinSQL + (SELECT string_agg(rtrim(bk.value), ' AND ') + ')'  FROM string_split(rtrim(@WhereJoinSQl), char(13)) bk)
+			SELECT @JoinSQL = @JoinSQL + (SELECT string_agg(rtrim(bk.value), ' AND ')   FROM string_split(rtrim(@WhereJoinSQl), char(13)) bk)
 		ELSE
 			SELECT @JoinSQL = @JoinSQL + (
-							SELECT string_agg(@TablePrefix + '.' + ltrim(bk.value) + '=t.' + ltrim(bk.value), ' AND ') + ')'
+							SELECT string_agg(@TablePrefix + '.' + ltrim(bk.value) + '=t.' + ltrim(bk.value), ' AND ') 
 							FROM string_split(@BusinessKeys, ',') bk
 							)  
-		IF @JoinSQL is not null SET @sql=  @sql + char(13) + @JoinSQL
+		IF @SCD=1 
+			SET @JoinSQL = @JoinSQL + ' AND ' + @TablePrefix + '.FromDate BETWEEN t.FromDate and t.ToDate'
+		IF @JoinSQL is not null SET @sql=  @sql  +  char(13) + @JoinSQL + ')'
 	END
 
 	IF @JoinSQL IS NULL AND  @sqlWhere IS NOT NULL SET @sql=@sql + char(13) +  @sqlWhere         

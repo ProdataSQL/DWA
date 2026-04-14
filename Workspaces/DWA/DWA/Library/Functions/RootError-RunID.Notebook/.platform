@@ -2,11 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Extract-Rerfresh-Logs",
-    "description": "New notebook"
+    "displayName": "RootError-RunID"
   },
   "config": {
     "version": "2.0",
-    "logicalId": "ec39ef46-61f5-b799-4398-a9cc1e0d01cb"
+    "logicalId": "e8469cab-d007-8a18-458c-ff8662f729d0"
   }
 }

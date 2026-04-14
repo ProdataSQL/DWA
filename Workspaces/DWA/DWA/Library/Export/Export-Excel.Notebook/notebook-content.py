@@ -73,12 +73,19 @@ TargetSettings = TargetSettings or '{}'
 
 source_settings = json.loads(SourceSettings)
 target_settings = json.loads(TargetSettings)
+source_connection_settings = json.loads(SourceConnectionSettings or '{}')
+target_connection_settings = json.loads(TargetConnectionSettings or '{}')
+lakehouse_id = target_connection_settings.get("lakehouseId",fabric.get_lakehouse_id())
+workspace_id = target_connection_settings.get("workspaceId",fabric.get_workspace_id())
+lakehouse_name = target_connection_settings.get("lakehouse",fabric.resolve_item_name(item_id=lakehouse_id, workspace=workspace_id))
+workspaces = fabric.list_workspaces()
+workspace_name = fabric.list_workspaces().set_index("Id")["Name"].to_dict().get(workspace_id, "Unknown")
 
 if "header" not in target_settings:
     target_settings["header"] = True
 
-target_directory = target_settings["Directory"]
-target_file = target_settings["File"]
+target_directory = target_settings["directory"]
+target_file = target_settings["file"]
 
 FILES_PREFIX = "Files"
 LAKEHOUSE_DEFAULT_PREFIX = "/lakehouse/default/"
@@ -88,15 +95,11 @@ if not target_directory.startswith(FILES_PREFIX):
 target_path = os.path.join(target_directory, target_file)
 temp_target_path = os.path.join(target_directory, f"_{target_file}")
 
-del target_settings["Directory"]
-del target_settings["File"]
+del target_settings["directory"]
+del target_settings["file"]
 
 Path(target_path).parent.mkdir(parents=True, exist_ok=True)
 
-tenant_id=spark.conf.get("trident.tenant.id")
-workspace_id=spark.conf.get("trident.workspace.id")
-lakehouse_id=spark.conf.get("trident.lakehouse.id")
-lakehouse_name=spark.conf.get("trident.lakehouse.name")
 sql_end_point= fabric.FabricRestClient().get(f"/v1/workspaces/{workspace_id}/lakehouses/{lakehouse_id}").json()['properties']['sqlEndpointProperties']['connectionString']
 connection_string = f"Driver={{ODBC Driver 18 for SQL Server}};Server={sql_end_point}"
 pattern = '[ ,;{}()\n\t/=]'
@@ -104,21 +107,14 @@ pattern = '[ ,;{}()\n\t/=]'
 # List Datasets from meta data
 engine = create_engine(connection_string)
 
-# Set your connection settings
-table_name = source_settings.get("TableName") or source_settings.get("Table")
-stored_procedure_name = source_settings.get("StoredProcedureName") or source_settings.get("StoredProcedure")
-view_name = source_settings.get("ViewName") or source_settings.get("View")
-query = source_settings.get("Query")
+source_object = source_settings["object"]
+lower_obj = source_object.lower()
 
-if query:
-    pass # query passed
-elif table_name or view_name:
-    query = f"SELECT * FROM {table_name or view_name}"
-elif stored_procedure_name:
-    query = f"EXEC {stored_procedure_name}"
-else:
-    raise Exception("No valid source specified (Table, Stored Procedure, Query or View).")
-    
+if "select" in lower_obj or lower_obj.startswith("exec"):
+    query = source_object  
+elif "." in lower_obj:
+    query = f"SELECT * FROM {source_object}"
+
 with engine.connect() as alchemy_connection:
     df = pd.read_sql_query(query, alchemy_connection)
 

@@ -6,7 +6,8 @@
         "typeProperties": {
           "parameters": {
             "PackageGroup": "AW",
-            "Stage": "ALL"
+            "Stage": "ALL",
+            "PipelineID": "-1"
           },
           "waitOnCompletion": true,
           "workspaceId": "00000000-0000-0000-0000-000000000000",

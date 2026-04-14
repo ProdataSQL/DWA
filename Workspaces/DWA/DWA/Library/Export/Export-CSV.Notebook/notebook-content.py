@@ -30,8 +30,8 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings ='{"Object":"FabricLH_NS.dbo.account"}'
-TargetSettings ='{"Directory": "export/csv", "File":"Account.csv"}'
+SourceSettings ='{"object":"FabricLH_NS.dbo.account"}'
+TargetSettings ='{"directory": "export/csv", "file":"Account.csv"}'
 SourceConnectionSettings=None
 TargetConnectionSettings=None
 ActivitySettings=None
@@ -82,8 +82,8 @@ if "header" not in target_settings:
 if "escape" not in target_settings:
     target_settings["escape"] = '"'
 
-target_directory = target_settings["Directory"]
-target_file = target_settings["File"]
+target_directory = target_settings["directory"]
+target_file = target_settings["file"]
 
 
 FILES_PREFIX = "Files"
@@ -95,8 +95,8 @@ target_path = os.path.join(target_directory, target_file)
 
 temp_target_path = os.path.join(target_directory, f"_{target_file}")
 
-del target_settings["Directory"]
-del target_settings["File"]
+del target_settings["directory"]
+del target_settings["file"]
 
 tenant_id=spark.conf.get("trident.tenant.id")
 workspace_id=spark.conf.get("trident.workspace.id")
@@ -109,7 +109,7 @@ pattern = '[ ,;{}()\n\t/=]'
 # List Datasets from meta data
 engine = create_engine(connection_string)
 
-source_object = source_settings.get("Object")
+source_object = source_settings.get("object")
 
 if "usp_" in source_object.lower() and not source_object.lower().startswith("exec"): # sproc without EXEC
     query = f"EXEC {source_object}"

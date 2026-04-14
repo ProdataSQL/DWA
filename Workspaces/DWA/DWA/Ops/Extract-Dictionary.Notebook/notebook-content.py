@@ -8,9 +8,10 @@
 # META   },
 # META   "dependencies": {
 # META     "lakehouse": {
-# META       "default_lakehouse": "d58f4f2d-59d7-406d-ae4c-898354a6a75f",
-# META       "default_lakehouse_name": "LH",
-# META       "default_lakehouse_workspace_id": "5941a6c0-8c98-4d79-b065-a3789e9e0960"
+# META       "default_lakehouse": "f2f9c5fa-ca0c-41b2-b0e1-3028165b4f6c",
+# META       "default_lakehouse_name": "FabricLH",
+# META       "default_lakehouse_workspace_id": "9b8a6500-5ccb-49a9-885b-b5b081efed75",
+# META       "known_lakehouses": []
 # META     }
 # META   }
 # META }
@@ -21,13 +22,12 @@
 # 
 # This notebook collects and stores metadata information from Data Warehouse into Lakehouse for data governance, backup and data cataloguing purpose. Metadata information could be notebook information, datasets, data warehouse tables.
 # 
-# It needs a library helper function to establish connection with data warehouse.
+# "SQL-Connection-Shared-Function" is also required to establish connection with data warehouse.
 
 # PARAMETERS CELL ********************
 
-# No Parameters as settings obtained dynamically from default spark lakehouse
-edw="DW"
-lh="LH"
+edw="FabricDW"
+lh="FabricLH"
 meta="Meta"
 
 # METADATA ********************
@@ -39,7 +39,7 @@ meta="Meta"
 
 # CELL ********************
 
-%run SQL-Connection-Shared-Functions
+%run SQL-Connection-Shared-Functions 
 
 # METADATA ********************
 
@@ -51,6 +51,7 @@ meta="Meta"
 # CELL ********************
 
 import pandas as pd
+#from builtin.sql_connection_helper import create_engine
 import sempy.fabric as fabric
 import re
 

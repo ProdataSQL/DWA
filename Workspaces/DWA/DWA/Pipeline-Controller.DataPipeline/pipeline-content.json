@@ -65,7 +65,7 @@
                       }
                     },
                     "externalReferences": {
-                      "connection": "8bb55f8d-a23b-4d7a-9b1e-f75030d20acb"
+                      "connection": "@pipeline().libraryVariables.Environment_DataPipelinesConnectionID"
                     }
                   }
                 ]
@@ -209,6 +209,11 @@
       "Environment_PipelineWorker": {
         "type": "String",
         "variableName": "PipelineWorker",
+        "libraryName": "Environment"
+      },
+      "Environment_DataPipelinesConnectionID": {
+        "type": "String",
+        "variableName": "DataPipelinesConnectionID",
         "libraryName": "Environment"
       }
     }

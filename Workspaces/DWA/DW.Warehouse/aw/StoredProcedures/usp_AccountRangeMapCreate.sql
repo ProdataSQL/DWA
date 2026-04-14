@@ -7,23 +7,22 @@ Used By:		Table load for ReportAccountMap
 	SELECT * FROM aw.ReportAccountMap
 
 History:	
-	20/02/2025 Created
+	24/10/2023 Shruti, Created
+	06/11/2024 Aidan, Updated to match new tables
 */
 
-CREATE PROC [aw].[usp_AccountRangeMapCreate] AS
+CREATE     PROC [aw].[usp_AccountRangeMapCreate] AS
 BEGIN
 	SET NOCOUNT ON;	
 	
 	IF OBJECT_ID('aw.ReportAccountMap') IS NOT NULL 
 		DROP TABLE aw.ReportAccountMap;
 
-	SELECT ar.ReportNo
-	, ar.Report COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 AS Report
-	, a.AccountKey COLLATE Latin1_General_100_CI_AS_KS_WS_SC_UTF8 AS AccountKey
+	SELECT ar.ReportNo, ar.Report, a.AccountKey AS AccountKey
 	INTO aw.ReportAccountMap
 	FROM aw.DimAccount a
 	INNER JOIN aw_int.AccountRangeRules arr 
-			ON a.AccountCodeAlternateKey BETWEEN arr.FromAccountNo AND arr.ToAccountNo
+			ON a.AccountCode BETWEEN arr.FromAccountNo AND arr.ToAccountNo
 	INNER JOIN aw_int.AccountRange ar 
 			ON ar.ReportNo = arr.ReportNo
 	WHERE ar.Operator = 'Sum'

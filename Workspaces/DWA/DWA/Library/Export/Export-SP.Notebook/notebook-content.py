@@ -25,11 +25,11 @@
 
 # Environment parameters
 SourceConnectionSettings = '{}'
-TargetConnectionSettings = '{ "sharepoint_url":"prodata365.sharepoint.com","site":"Fabric","tenant_id":"d8ca992a-5fbe-40b2-9b8b-844e198c4c94","app_client_id":"b9b25184-7305-4612-89cb-41106bc4d80a","app_client_secret":"app-fabricdw-dev-clientsecret","KeyVault":"kv-fabric-dev"}'
-SourceSettings = '{"DefaultDatabase":"FabricDW","SourceObject":"aw.FactFinance"}'
+TargetConnectionSettings = '{ "sharepointUrl":"prodata365.sharepoint.com","site":"Fabric","tenantId":"d8ca992a-5fbe-40b2-9b8b-844e198c4c94","appClientId":"b9b25184-7305-4612-89cb-41106bc4d80a","appClientSecret":"app-fabricdw-dev-clientsecret","keyVault":"kv-fabric-dev"}'
+SourceSettings = '{"defaultDatabase":"FabricDW","sourceObject":"aw.FactFinance"}'
 # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_excel.html
 # https://docs.python.org/3/library/datetime.html#datetime.date.strftime
-TargetSettings = '{"Drive" : "Documents" , "Directory": "General/Controls/", "File" : "AidanTestSheet_%Y%m%d.xlsx","sheet_name":["SprocExample"]}'
+TargetSettings = '{"drive" : "Documents" , "directory": "General/Controls/", "file" : "TestSheet_%Y%m%d.xlsx","sheet_name":["SprocExample"]}'
 ActivitySettings = '{}'
 
  
@@ -76,19 +76,19 @@ target_settings = json.loads(TargetSettings)
 if "header" not in target_settings:
     target_settings["header"] = True
 
-tenant_id = target_connection_settings.get("tenant_id", spark.conf.get("trident.tenant.id"))
-client_id = target_connection_settings["app_client_id"]
-keyvault = target_connection_settings["KeyVault"]
-client_secret_name = target_connection_settings["app_client_secret"]
-sharepoint_url = target_connection_settings["sharepoint_url"]
+tenant_id = target_connection_settings.get("tenantId", spark.conf.get("trident.tenant.id"))
+client_id = target_connection_settings["appClientId"]
+keyvault = target_connection_settings["keyVault"]
+client_secret_name = target_connection_settings["appClientSecret"]
+sharepoint_url = target_connection_settings["sharepointUrl"]
 site_name = target_connection_settings["site"]
 
-target_drive_name = target_connection_settings.get("Drive") or target_settings.get("Drive", "Documents")
+target_drive_name = target_connection_settings.get("drive") or target_settings.get("drive", "documents")
 
-target_directory = target_connection_settings.get("Directory") or target_settings["Directory"]
+target_directory = target_connection_settings.get("directory") or target_settings["directory"]
 target_directory = target_directory.strip("/")
 
-target_file = target_settings["File"]
+target_file = target_settings["file"]
 file_split = target_file.split(".")
 if len(file_split) < 2:
     raise ValueError("target File must have a specified file time ({}.[csv]/[excel])")
@@ -109,19 +109,19 @@ if not target_directory.startswith("root:/"):
     target_directory = f"root:/{target_directory}"
 target_directory = f"/{target_directory}"
 
-if "Drive" in target_connection_settings:
-    del(target_connection_settings["Drive"])
-if "Drive" in target_settings:
-    del(target_settings["Drive"])
+if "drive" in target_connection_settings:
+    del(target_connection_settings["drive"])
+if "drive" in target_settings:
+    del(target_settings["drive"])
 
 if "sheet_name" in target_settings:
     del(target_settings["sheet_name"])
 
-del(target_settings["File"])
-if "Directory" in target_settings:
-    del(target_settings["Directory"])
-if "Directory" in target_connection_settings:
-    del(target_connection_settings["Directory"])
+del(target_settings["file"])
+if "directory" in target_settings:
+    del(target_settings["directory"])
+if "directory" in target_connection_settings:
+    del(target_connection_settings["directory"])
 
 
 workspace_id=spark.conf.get("trident.workspace.id")
@@ -133,8 +133,8 @@ pattern = '[ ,;{}()\n\t/=]'
 
 engine = create_engine(connection_string)
 
-source_objects = source_settings["SourceObject"]
-default_database = source_settings["DefaultDatabase"]
+source_objects = source_settings["sourceObject"]
+default_database = source_settings["defaultDatabase"]
 if not isinstance(source_objects,list):
     source_objects = [source_objects]
 queries = []
@@ -190,10 +190,10 @@ if len(queries) != len(sheet_names):
 # CELL ********************
 
 access_token = get_sharepoint_token(tenant_id, client_id, keyvault, client_secret_name)
-headers = { 'Authorization': f'Bearer {access_token}' }
+headers = get_sharepoint_headers()
 site = get_sharepoint_site(sharepoint_url, site_name, headers)
 site_id = site["id"]
-drive = get_sharepoint_drive(site["id"], target_drive_name, headers)
+drive = get_sharepoint_drive(site, target_drive_name, headers)
 first_run = True
 
 

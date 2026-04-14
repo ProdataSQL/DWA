@@ -2,16 +2,34 @@
   "properties": {
     "activities": [
       {
+        "name": "ForEach",
         "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "usp_TruncateAll",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
         "typeProperties": {
-          "isSequential": true,
           "items": {
             "value": "@activity('usp_GetTables').output.resultsets[0].rows",
             "type": "Expression"
           },
+          "isSequential": true,
           "activities": [
             {
+              "name": "Copy Parquet-SQL",
               "type": "Copy",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
                 "source": {
                   "type": "ParquetSource",
@@ -24,71 +42,69 @@
                     "type": "ParquetReadSettings"
                   },
                   "datasetSettings": {
+                    "annotations": [],
+                    "linkedService": {
+                      "name": "79f1bd87_6ba2_4970_a774_4a64de4ee2df",
+                      "properties": {
+                        "annotations": [],
+                        "type": "Lakehouse",
+                        "typeProperties": {
+                          "workspaceId": "@pipeline().DataFactory",
+                          "artifactId": "@pipeline().libraryVariables.LakehouseID",
+                          "rootFolder": "Files"
+                        }
+                      }
+                    },
                     "type": "Parquet",
                     "typeProperties": {
                       "location": {
                         "type": "LakehouseLocation",
-                        "folderPath": {
-                          "value": "backup/config/@{pipeline().parameters.Date}",
-                          "type": "Expression"
-                        },
                         "fileName": {
                           "value": "@concat(item().name,'.parquet')",
+                          "type": "Expression"
+                        },
+                        "folderPath": {
+                          "value": "backup/config/@{pipeline().parameters.Date}",
                           "type": "Expression"
                         }
                       },
                       "compressionCodec": "snappy"
                     },
-                    "schema": [],
-                    "connectionSettings": {
-                      "name": "b7405e5f_c877_4ccd_979f_d1fc9cabb1f4",
-                      "properties": {
-                        "type": "Lakehouse",
-                        "typeProperties": {
-                          "artifactId": "@pipeline().libraryVariables.DefaultLakehouseID",
-                          "workspaceId": "@pipeline().DataFactory",
-                          "rootFolder": "Files"
-                        },
-                        "externalReferences": {
-                          "connection": "@pipeline().libraryVariables.LakehouseConnectionID"
-                        },
-                        "annotations": []
-                      }
-                    },
-                    "annotations": []
+                    "schema": []
                   }
                 },
                 "sink": {
                   "type": "FabricSqlDatabaseSink",
-                  "sqlWriterUseTableLock": false,
                   "writeBehavior": "insert",
+                  "sqlWriterUseTableLock": false,
                   "datasetSettings": {
+                    "annotations": [],
+                    "connectionSettings": {
+                      "name": "88a52786_68ab_449c_99ca_b17f4d929385",
+                      "properties": {
+                        "annotations": [],
+                        "type": "FabricSqlDatabase",
+                        "typeProperties": {
+                          "workspaceId": "@pipeline().DataFactory",
+                          "artifactId": "@pipeline().libraryVariables.MetaDatabaseID"
+                        },
+                        "externalReferences": {
+                          "connection": "@pipeline().libraryVariables.MetaConnectionID"
+                        }
+                      }
+                    },
                     "type": "FabricSqlDatabaseTable",
+                    "schema": [],
                     "typeProperties": {
                       "schema": "config",
                       "table": {
                         "value": "@item().Name",
                         "type": "Expression"
                       }
-                    },
-                    "schema": [],
-                    "connectionSettings": {
-                      "name": "Meta",
-                      "properties": {
-                        "type": "FabricSqlDatabase",
-                        "typeProperties": {
-                          "artifactId": "77526212-2be8-973a-4f64-af27fe70c606",
-                          "workspaceId": "00000000-0000-0000-0000-000000000000"
-                        },
-                        "externalReferences": {
-                          "connection": "935d976f-470e-42dc-9ee1-97ef97a281a4"
-                        },
-                        "annotations": []
-                      }
-                    },
-                    "annotations": []
+                    }
                   }
                 },
+                "enableStaging": false,
                 "translator": {
                   "type": "TabularTranslator",
                   "typeConversion": true,
@@ -96,58 +112,15 @@
                     "allowDataTruncation": true,
                     "treatBooleanAsNumber": false
                   }
-                },
-                "enableStaging": false
-              },
-              "policy": {
-                "timeout": "0.12:00:00",
-                "retry": 0,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "Copy Parquet-SQL",
-              "dependsOn": []
+                }
+              }
             }
           ]
-        },
-        "name": "ForEach",
-        "dependsOn": [
-          {
-            "activity": "usp_TruncateAll",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
+        }
       },
       {
-        "type": "SqlServerStoredProcedure",
-        "typeProperties": {
-          "storedProcedureName": "[config].[usp_TruncateAll]"
-        },
-        "connectionSettings": {
-          "name": "25d8118a_77da_4eb9_b7ac_0ff556d6ddb1",
-          "properties": {
-            "type": "FabricSqlDatabase",
-            "typeProperties": {
-              "artifactId": "@pipeline().libraryVariables.MetaDatabaseID",
-              "workspaceId": "@pipeline().DataFactory"
-            },
-            "externalReferences": {
-              "connection": "@pipeline().libraryVariables.MetaConnectionID"
-            },
-            "annotations": []
-          }
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
         "name": "usp_TruncateAll",
+        "type": "SqlServerStoredProcedure",
         "dependsOn": [
           {
             "activity": "usp_GetTables",
@@ -155,51 +128,75 @@
               "Succeeded"
             ]
           }
-        ]
-      },
-      {
-        "type": "Script",
-        "typeProperties": {
-          "scripts": [
-            {
-              "text": {
-                "value": "[config].[usp_GetTables]",
-                "type": "Expression"
-              },
-              "type": "Query"
-            }
-          ],
-          "scriptBlockExecutionTimeout": "02:00:00"
-        },
-        "connectionSettings": {
-          "name": "f11ab596_004a_40c4_b899_f7cc09d68ba8",
-          "properties": {
-            "type": "FabricSqlDatabase",
-            "typeProperties": {
-              "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID",
-              "workspaceId": "@pipeline().DataFactory"
-            },
-            "externalReferences": {
-              "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
-            },
-            "annotations": []
-          }
-        },
+        ],
         "policy": {
           "timeout": "0.12:00:00",
           "retry": 0,
           "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
+          "secureOutput": false,
+          "secureInput": false
         },
+        "typeProperties": {
+          "storedProcedureName": "[config].[usp_TruncateAll]"
+        },
+        "connectionSettings": {
+          "name": "cb63c428_60f3_40f5_a708_315bf62552d8",
+          "properties": {
+            "annotations": [],
+            "type": "FabricSqlDatabase",
+            "typeProperties": {
+              "workspaceId": "@pipeline().DataFactory",
+              "artifactId": "@pipeline().libraryVariables.MetaDatabaseID"
+            },
+            "externalReferences": {
+              "connection": "@pipeline().libraryVariables.MetaConnectionID"
+            }
+          }
+        }
+      },
+      {
         "name": "usp_GetTables",
-        "dependsOn": []
+        "type": "Script",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "connectionSettings": {
+          "name": "2c25e03c_a57e_4b96_9ba0_96e3990fd797",
+          "properties": {
+            "annotations": [],
+            "type": "FabricSqlDatabase",
+            "typeProperties": {
+              "workspaceId": "@pipeline().DataFactory",
+              "artifactId": "@pipeline().libraryVariables.MetaDatabaseID"
+            },
+            "externalReferences": {
+              "connection": "@pipeline().libraryVariables.MetaConnectionID"
+            }
+          }
+        },
+        "typeProperties": {
+          "scripts": [
+            {
+              "type": "Query",
+              "text": {
+                "value": "[config].[usp_GetTables]",
+                "type": "Expression"
+              }
+            }
+          ],
+          "scriptBlockExecutionTimeout": "02:00:00"
+        }
       }
     ],
     "parameters": {
       "Date": {
         "type": "string",
-        "defaultValue": "20250709"
+        "defaultValue": "20250710"
       }
     },
     "libraryVariables": {
@@ -213,14 +210,9 @@
         "variableName": "MetaDatabaseID",
         "libraryName": "Environment"
       },
-      "LakehouseConnectionID": {
+      "LakehouseID": {
         "type": "String",
-        "variableName": "LakehouseConnectionID",
-        "libraryName": "Environment"
-      },
-      "DefaultLakehouseID": {
-        "type": "String",
-        "variableName": "DefaultLakehouseID",
+        "variableName": "LakehouseID",
         "libraryName": "Environment"
       }
     }

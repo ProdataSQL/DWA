@@ -24,9 +24,9 @@
 
 # PARAMETERS CELL ********************
 
-SourceSettings = '{"Url":["getOneDriveUsageAccountDetail", "getMailboxUsageDetail"]}'
-TargetSettings = '{"SchemaName": "o365", "condition" : "target.Report_Refresh_Date = source.Report_Refresh_Date ","mode":"merge"}'
-SourceConnectionSettings = '{"tenant_id":"d8ca992a-5fbe-40b2-9b8b-844e198c4c94","app_client_id":"app-o365-logs-clientid","app_client_secret":"app-o365-logs-clientsecret","keyvault":"kv-fabric-dev"}'
+SourceSettings = '{"url":["getOneDriveUsageAccountDetail", "getMailboxUsageDetail"]}'
+TargetSettings = '{"schema": "o365", "condition" : "target.Report_Refresh_Date = source.Report_Refresh_Date ","mode":"merge"}'
+SourceConnectionSettings = '{"tenantId":"d8ca992a-5fbe-40b2-9b8b-844e198c4c94","appClientId":"app-o365-logs-clientid","appClientSecret":"app-o365-logs-clientsecret","keyVault":"kv-fabric-dev"}'
 TargetConnectionSettings = None
 ActivitySettings = '{"with_checksum" : true, "dedupe": false}'
 LineageKey = '00000000-0000-0000-0000-000000000000'
@@ -100,13 +100,13 @@ source_settings = json.loads(SourceSettings or '{}')
 target_settings = json.loads(TargetSettings or '{}')
 activity_settings = json.loads(ActivitySettings or '{}')
 
-tenant_id = source_connection_settings["tenant_id"]
-app_client_id = source_connection_settings["app_client_id"]
-app_client_secret = source_connection_settings["app_client_secret"]
-keyvault = source_connection_settings["keyvault"]
+tenant_id = source_connection_settings["tenantId"]
+app_client_id = source_connection_settings["appClientId"]
+app_client_secret = source_connection_settings["appClientSecret"]
+keyvault = source_connection_settings["keyVault"]
 
-urls = source_settings.pop("Url")
-schema_name = target_settings.get("SchemaName", "o365")
+urls = source_settings.pop("url")
+schema_name = target_settings.get("schema", "o365")
 
 write_mode = target_settings.pop("mode", "overwrite")
 dedupe = bool(activity_settings.get("dedupe"))
