@@ -65,7 +65,7 @@
                 "sink": {
                   "type": "ParquetSink",
                   "storeSettings": {
-                    "type": "LakehouseWriteSettings"
+                    "type": "AzureBlobStorageWriteSettings"
                   },
                   "formatSettings": {
                     "type": "ParquetWriteSettings",
