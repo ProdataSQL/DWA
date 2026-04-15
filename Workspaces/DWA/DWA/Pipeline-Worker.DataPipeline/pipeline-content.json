@@ -2,16 +2,34 @@
   "properties": {
     "activities": [
       {
+        "name": "ForEach",
         "type": "ForEach",
+        "dependsOn": [
+          {
+            "activity": "usp_PipelineQueue",
+            "dependencyConditions": [
+              "Succeeded"
+            ]
+          }
+        ],
         "typeProperties": {
-          "batchCount": 8,
           "items": {
             "value": "@activity('usp_PipelineQueue').output.resultsets[0].rows",
             "type": "Expression"
           },
+          "batchCount": 8,
           "activities": [
             {
+              "name": "Switch1",
               "type": "Switch",
+              "dependsOn": [
+                {
+                  "activity": "usp_PipelineStart",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
               "typeProperties": {
                 "on": {
                   "value": "@item().TemplateType",
@@ -22,7 +40,16 @@
                     "value": "Notebook",
                     "activities": [
                       {
+                        "name": "Notebook",
                         "type": "TridentNotebook",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
                         "typeProperties": {
                           "notebookId": {
                             "value": "@item().TemplateID",
@@ -80,16 +107,7 @@
                             "value": "@item().SessionTag",
                             "type": "Expression"
                           }
-                        },
-                        "policy": {
-                          "timeout": "0.12:00:00",
-                          "retry": 0,
-                          "retryIntervalInSeconds": 30,
-                          "secureInput": false,
-                          "secureOutput": false
-                        },
-                        "name": "Notebook",
-                        "dependsOn": []
+                        }
                       }
                     ]
                   },
@@ -97,7 +115,16 @@
                     "value": "Load",
                     "activities": [
                       {
+                        "name": "usp_TableLoad",
                         "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 1,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
                         "typeProperties": {
                           "storedProcedureName": "dwa.usp_TableLoad",
                           "storedProcedureParameters": {
@@ -113,27 +140,18 @@
                         "connectionSettings": {
                           "name": "ead26267_ebb9_4b4d_be00_878fe4e1b43c",
                           "properties": {
+                            "annotations": [],
                             "type": "DataWarehouse",
                             "typeProperties": {
-                              "artifactId": "@pipeline().libraryVariables.Environment_DWDatabaseID",
                               "endpoint": "@pipeline().libraryVariables.Environment_DWServerName",
+                              "artifactId": "@pipeline().libraryVariables.Environment_DWDatabaseID",
                               "workspaceId": "@pipeline().DataFactory"
                             },
                             "externalReferences": {
                               "connection": "@pipeline().libraryVariables.Environment_DWConnectionID"
-                            },
-                            "annotations": []
+                            }
                           }
-                        },
-                        "policy": {
-                          "timeout": "0.12:00:00",
-                          "retry": 1,
-                          "retryIntervalInSeconds": 30,
-                          "secureInput": false,
-                          "secureOutput": false
-                        },
-                        "name": "usp_TableLoad",
-                        "dependsOn": []
+                        }
                       }
                     ]
                   },
@@ -141,8 +159,27 @@
                     "value": "DataPipeline",
                     "activities": [
                       {
+                        "name": "DataPipeline",
                         "type": "InvokePipeline",
+                        "dependsOn": [],
+                        "policy": {
+                          "timeout": "0.12:00:00",
+                          "retry": 0,
+                          "retryIntervalInSeconds": 30,
+                          "secureOutput": false,
+                          "secureInput": false
+                        },
                         "typeProperties": {
+                          "waitOnCompletion": true,
+                          "operationType": "InvokeFabricPipeline",
+                          "pipelineId": {
+                            "value": "@item().TemplateID",
+                            "type": "Expression"
+                          },
+                          "workspaceId": {
+                            "value": "@coalesce( item().TemplateWorkspaceID, pipeline().DataFactory)",
+                            "type": "Expression"
+                          },
                           "parameters": {
                             "SourceSettings": {
                               "value": "@item().SourceSettings",
@@ -168,61 +205,42 @@
                               "value": "@item().LineageKey",
                               "type": "Expression"
                             }
-                          },
-                          "waitOnCompletion": true,
-                          "workspaceId": {
-                            "value": "@coalesce( item().TemplateWorkspaceID, pipeline().DataFactory)",
-                            "type": "Expression"
-                          },
-                          "pipelineId": {
-                            "value": "@item().TemplateID",
-                            "type": "Expression"
-                          },
-                          "operationType": "InvokeFabricPipeline"
+                          }
                         },
                         "externalReferences": {
                           "connection": "@pipeline().libraryVariables.Environment_DataPipelinesConnectionID"
-                        },
-                        "policy": {
-                          "timeout": "0.12:00:00",
-                          "retry": 0,
-                          "retryIntervalInSeconds": 30,
-                          "secureInput": false,
-                          "secureOutput": false
-                        },
-                        "name": "DataPipeline",
-                        "dependsOn": []
+                        }
                       }
                     ]
                   }
                 ],
                 "defaultActivities": [
                   {
+                    "name": "Fail1",
                     "type": "Fail",
+                    "dependsOn": [],
                     "typeProperties": {
                       "message": {
                         "value": "@{item().TemplateType} not found in switch statement, or @{item().Template} not connected to the Lakehouse or not in config.Artefacts view",
                         "type": "Expression"
                       },
                       "errorCode": "0001"
-                    },
-                    "name": "Fail1",
-                    "dependsOn": []
+                    }
                   }
                 ]
-              },
-              "name": "Switch1",
-              "dependsOn": [
-                {
-                  "activity": "usp_PipelineStart",
-                  "dependencyConditions": [
-                    "Succeeded"
-                  ]
-                }
-              ]
+              }
             },
             {
+              "name": "usp_PipelineStart",
               "type": "SqlServerStoredProcedure",
+              "dependsOn": [],
+              "policy": {
+                "timeout": "0.00:10:00",
+                "retry": 1,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
                 "storedProcedureName": "[audit].[usp_PipelineStart]",
                 "storedProcedureParameters": {
@@ -287,29 +305,36 @@
               "connectionSettings": {
                 "name": "d5890115_eb40_43ba_8541_b934264c5f69",
                 "properties": {
+                  "annotations": [],
                   "type": "FabricSqlDatabase",
                   "typeProperties": {
-                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID",
-                    "workspaceId": "@pipeline().DataFactory"
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
                   },
                   "externalReferences": {
                     "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
-                  },
-                  "annotations": []
+                  }
                 }
-              },
-              "policy": {
-                "timeout": "0.00:10:00",
-                "retry": 1,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "usp_PipelineStart",
-              "dependsOn": []
+              }
             },
             {
+              "name": "usp_PipelineWorkerEndFailure",
               "type": "SqlServerStoredProcedure",
+              "dependsOn": [
+                {
+                  "activity": "RootError",
+                  "dependencyConditions": [
+                    "Completed"
+                  ]
+                }
+              ],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
                 "storedProcedureName": "[audit].[usp_PipelineWorkerEndFailure]",
                 "storedProcedureParameters": {
@@ -325,36 +350,36 @@
               "connectionSettings": {
                 "name": "9ee1ef00_a982_4d23_97ef_b7325f2b35b3",
                 "properties": {
+                  "annotations": [],
                   "type": "FabricSqlDatabase",
                   "typeProperties": {
-                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID",
-                    "workspaceId": "@pipeline().DataFactory"
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
                   },
                   "externalReferences": {
                     "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
-                  },
-                  "annotations": []
+                  }
                 }
-              },
+              }
+            },
+            {
+              "name": "usp_PipelineEndSuccess",
+              "type": "SqlServerStoredProcedure",
+              "dependsOn": [
+                {
+                  "activity": "Switch1",
+                  "dependencyConditions": [
+                    "Succeeded"
+                  ]
+                }
+              ],
               "policy": {
                 "timeout": "0.12:00:00",
                 "retry": 0,
                 "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
+                "secureOutput": false,
+                "secureInput": false
               },
-              "name": "usp_PipelineWorkerEndFailure",
-              "dependsOn": [
-                {
-                  "activity": "RootError",
-                  "dependencyConditions": [
-                    "Completed"
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "SqlServerStoredProcedure",
               "typeProperties": {
                 "storedProcedureName": "[audit].[usp_PipelineEndSuccess]",
                 "storedProcedureParameters": {
@@ -370,39 +395,45 @@
               "connectionSettings": {
                 "name": "a7cf016d_8fb6_4689_a3ab_8c1e1e35113a",
                 "properties": {
+                  "annotations": [],
                   "type": "FabricSqlDatabase",
                   "typeProperties": {
-                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID",
-                    "workspaceId": "@pipeline().DataFactory"
+                    "workspaceId": "@pipeline().DataFactory",
+                    "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
                   },
                   "externalReferences": {
                     "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
-                  },
-                  "annotations": []
+                  }
                 }
-              },
-              "policy": {
-                "timeout": "0.12:00:00",
-                "retry": 0,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "usp_PipelineEndSuccess",
+              }
+            },
+            {
+              "name": "RootError",
+              "type": "TridentNotebook",
               "dependsOn": [
                 {
                   "activity": "Switch1",
                   "dependencyConditions": [
-                    "Succeeded"
+                    "Failed"
                   ]
                 }
-              ]
-            },
-            {
-              "type": "TridentNotebook",
+              ],
+              "policy": {
+                "timeout": "0.12:00:00",
+                "retry": 0,
+                "retryIntervalInSeconds": 30,
+                "secureOutput": false,
+                "secureInput": false
+              },
               "typeProperties": {
-                "notebookId": "e8469cab-d007-8a18-458c-ff8662f729d0",
-                "workspaceId": "00000000-0000-0000-0000-000000000000",
+                "notebookId": {
+                  "value": "@pipeline().libraryVariables.Environment_RootErrorRunIDNotebookID",
+                  "type": "Expression"
+                },
+                "workspaceId": {
+                  "value": "@coalesce( item().TemplateWorkspaceID, pipeline().DataFactory)",
+                  "type": "Expression"
+                },
                 "parameters": {
                   "RunID": {
                     "value": {
@@ -420,46 +451,39 @@
                   }
                 },
                 "sessionTag": "ETL"
-              },
-              "policy": {
-                "timeout": "0.12:00:00",
-                "retry": 0,
-                "retryIntervalInSeconds": 30,
-                "secureInput": false,
-                "secureOutput": false
-              },
-              "name": "RootError",
-              "dependsOn": [
-                {
-                  "activity": "Switch1",
-                  "dependencyConditions": [
-                    "Failed"
-                  ]
-                }
-              ]
+              }
             }
           ]
-        },
-        "name": "ForEach",
-        "dependsOn": [
-          {
-            "activity": "usp_PipelineQueue",
-            "dependencyConditions": [
-              "Succeeded"
-            ]
-          }
-        ]
+        }
       },
       {
+        "name": "usp_PipelineQueue",
         "type": "Script",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "connectionSettings": {
+          "name": "b54f23ce_2eab_4d8d_b903_ccaad4b34310",
+          "properties": {
+            "annotations": [],
+            "type": "FabricSqlDatabase",
+            "typeProperties": {
+              "workspaceId": "@pipeline().DataFactory",
+              "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID"
+            },
+            "externalReferences": {
+              "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
+            }
+          }
+        },
         "typeProperties": {
           "scripts": [
             {
-              "text": {
-                "value": "config.usp_PipelineQueue @PackageGroup, @PipelineSequence, @PipelineID",
-                "type": "Expression"
-              },
-              "type": "Query",
               "parameters": [
                 {
                   "name": "PackageGroup",
@@ -488,34 +512,16 @@
                   },
                   "direction": "Input"
                 }
-              ]
+              ],
+              "type": "Query",
+              "text": {
+                "value": "config.usp_PipelineQueue @PackageGroup, @PipelineSequence, @PipelineID",
+                "type": "Expression"
+              }
             }
           ],
           "scriptBlockExecutionTimeout": "02:00:00"
-        },
-        "connectionSettings": {
-          "name": "b54f23ce_2eab_4d8d_b903_ccaad4b34310",
-          "properties": {
-            "type": "FabricSqlDatabase",
-            "typeProperties": {
-              "artifactId": "@pipeline().libraryVariables.Environment_MetaDatabaseID",
-              "workspaceId": "@pipeline().DataFactory"
-            },
-            "externalReferences": {
-              "connection": "@pipeline().libraryVariables.Environment_MetaConnectionID"
-            },
-            "annotations": []
-          }
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "usp_PipelineQueue",
-        "dependsOn": []
+        }
       }
     ],
     "parameters": {
@@ -530,6 +536,11 @@
       "PipelineSequence": {
         "type": "Int",
         "defaultValue": -1
+      }
+    },
+    "variables": {
+      "l": {
+        "type": "String"
       }
     },
     "libraryVariables": {
@@ -562,11 +573,11 @@
         "type": "String",
         "variableName": "DataPipelinesConnectionID",
         "libraryName": "Environment"
-      }
-    },
-    "variables": {
-      "l": {
-        "type": "String"
+      },
+      "Environment_RootErrorRunIDNotebookID": {
+        "type": "String",
+        "variableName": "RootErrorRunIDNotebookID",
+        "libraryName": "Environment"
       }
     }
   }
