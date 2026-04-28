@@ -2,16 +2,19 @@
   "properties": {
     "activities": [
       {
+        "name": "Copy-SQL",
         "type": "Copy",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.00:30:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
         "typeProperties": {
           "source": {
             "type": "SqlServerSource",
-            "sqlReaderQuery": {
-              "value": "@if(\n    or(\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'SELECT'\n        ),\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'EXEC'\n        )\n    ),\n    json(string(pipeline().parameters.SourceSettings)).sourceObject,\n    if(\n        contains(\n            pipeline().parameters.SourceSettings,\n            'selectColumns'\n        ),\n        concat(\n            'SELECT ',\n            json(string(pipeline().parameters.SourceSettings)).selectColumns,\n            ' FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        ),\n        concat(\n            'SELECT * FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        )\n    )\n)",
-              "type": "Expression"
-            },
-            "partitionOption": "None",
-            "queryTimeout": "02:00:00",
             "additionalColumns": [
               {
                 "name": "LineageKey",
@@ -21,19 +24,25 @@
                 }
               }
             ],
+            "sqlReaderQuery": {
+              "value": "@if(\n    or(\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'SELECT'\n        ),\n        contains(\n            json(string(pipeline().parameters.SourceSettings)).sourceObject,\n            'EXEC'\n        )\n    ),\n    json(string(pipeline().parameters.SourceSettings)).sourceObject,\n    if(\n        contains(\n            pipeline().parameters.SourceSettings,\n            'selectColumns'\n        ),\n        concat(\n            'SELECT ',\n            json(string(pipeline().parameters.SourceSettings)).selectColumns,\n            ' FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        ),\n        concat(\n            'SELECT * FROM ',\n            json(string(pipeline().parameters.SourceSettings)).sourceObject\n        )\n    )\n)",
+              "type": "Expression"
+            },
+            "queryTimeout": "02:00:00",
+            "partitionOption": "None",
             "datasetSettings": {
+              "annotations": [],
               "type": "SqlServerTable",
+              "schema": [],
               "typeProperties": {
                 "database": {
                   "value": "@json(string(pipeline().parameters.SourceSettings)).database",
                   "type": "Expression"
                 }
               },
-              "schema": [],
               "externalReferences": {
                 "connection": "@json(string(pipeline().parameters.SourceConnectionSettings)).connectionId"
-              },
-              "annotations": []
+              }
             }
           },
           "sink": {
@@ -42,11 +51,25 @@
               "value": "@if(\n  contains(\n    pipeline().parameters.TargetSettings, 'tableActionOption'\n  )\n  ,json(string(pipeline().parameters.TargetSettings)).tableActionOption\n  ,'OverwriteSchema'\n  )",
               "type": "Expression"
             },
-            "applyVOrder": true,
             "upsertSettings": {},
             "partitionOption": "None",
+            "applyVOrder": true,
             "datasetSettings": {
+              "annotations": [],
+              "linkedService": {
+                "name": "32b40b06_dddb_4d3e_a9b9_b093e08b4c43",
+                "properties": {
+                  "annotations": [],
+                  "type": "Lakehouse",
+                  "typeProperties": {
+                    "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId",
+                    "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).lakehouseId",
+                    "rootFolder": "Tables"
+                  }
+                }
+              },
               "type": "LakehouseTable",
+              "schema": [],
               "typeProperties": {
                 "schema": {
                   "value": "@json(string(pipeline().parameters.TargetSettings)).schema",
@@ -56,23 +79,10 @@
                   "value": "@json(string(pipeline().parameters.TargetSettings)).table\n",
                   "type": "Expression"
                 }
-              },
-              "schema": [],
-              "linkedService": {
-                "name": "3076a8b4_b5cf_47f7_b8c9_02f486b6230a",
-                "properties": {
-                  "type": "Lakehouse",
-                  "typeProperties": {
-                    "artifactId": "@json(string(pipeline().parameters.TargetConnectionSettings)).lakehouseId",
-                    "workspaceId": "@json(string(pipeline().parameters.TargetConnectionSettings)).workspaceId",
-                    "rootFolder": "Tables"
-                  },
-                  "annotations": []
-                }
-              },
-              "annotations": []
+              }
             }
           },
+          "enableStaging": false,
           "translator": {
             "type": "TabularTranslator",
             "typeConversion": true,
@@ -80,24 +90,30 @@
               "allowDataTruncation": true,
               "treatBooleanAsNumber": false
             }
-          },
-          "enableStaging": false
-        },
-        "policy": {
-          "timeout": "0.00:30:00",
-          "retry": 1,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "Copy-SQL",
-        "dependsOn": []
+          }
+        }
       },
       {
+        "name": "usp_PipelineLogCopy",
         "type": "SqlServerStoredProcedure",
+        "dependsOn": [
+          {
+            "activity": "Copy-SQL",
+            "dependencyConditions": [
+              "Completed"
+            ]
+          }
+        ],
+        "policy": {
+          "timeout": "0.12:00:00",
+          "retry": 0,
+          "retryIntervalInSeconds": 30,
+          "secureOutput": false,
+          "secureInput": false
+        },
         "typeProperties": {
-          "database": "Meta-4adf8914-0560-45ec-a3c3-597b6b5c9294",
           "storedProcedureName": "[audit].[usp_PipelineLogCopy]",
+          "database": "Meta-4adf8914-0560-45ec-a3c3-597b6b5c9294",
           "storedProcedureParameters": {
             "Json": {
               "value": {
@@ -116,46 +132,23 @@
           }
         },
         "connectionSettings": {
-          "name": "Meta",
+          "name": "a68898e4_4237_4c18_88ab_e033dc23a062",
           "properties": {
+            "annotations": [],
             "type": "FabricSqlDatabase",
             "typeProperties": {
-              "artifactId": "77526212-2be8-973a-4f64-af27fe70c606",
-              "workspaceId": "00000000-0000-0000-0000-000000000000"
+              "workspaceId": "@pipeline().DataFactory",
+              "artifactId": "@pipeline().libraryVariables.MetaDatabaseID"
             },
             "externalReferences": {
-              "connection": "51ba5474-a810-44e4-9a9e-fbcc7892954f"
-            },
-            "annotations": []
+              "connection": "@pipeline().libraryVariables.MetaConnectionID"
+            }
           }
-        },
-        "policy": {
-          "timeout": "0.12:00:00",
-          "retry": 0,
-          "retryIntervalInSeconds": 30,
-          "secureInput": false,
-          "secureOutput": false
-        },
-        "name": "usp_PipelineLogCopy",
-        "dependsOn": [
-          {
-            "activity": "Copy-SQL",
-            "dependencyConditions": [
-              "Completed"
-            ]
-          }
-        ]
+        }
       },
       {
-        "type": "Fail",
-        "typeProperties": {
-          "message": {
-            "value": "Error Check SELECT * FROM audit.Pipelinelogs WHERE LineageKey='@{pipeline().parameters.LineageKey}'",
-            "type": "Expression"
-          },
-          "errorCode": "0001"
-        },
         "name": "Fail1",
+        "type": "Fail",
         "dependsOn": [
           {
             "activity": "Copy-SQL",
@@ -163,7 +156,14 @@
               "Failed"
             ]
           }
-        ]
+        ],
+        "typeProperties": {
+          "message": {
+            "value": "Error Check SELECT * FROM audit.Pipelinelogs WHERE LineageKey='@{pipeline().parameters.LineageKey}'",
+            "type": "Expression"
+          },
+          "errorCode": "0001"
+        }
       }
     ],
     "parameters": {
@@ -199,6 +199,18 @@
       },
       "LineageKey": {
         "type": "string"
+      }
+    },
+    "libraryVariables": {
+      "MetaConnectionID": {
+        "type": "String",
+        "variableName": "MetaConnectionID",
+        "libraryName": "Environment"
+      },
+      "MetaDatabaseID": {
+        "type": "String",
+        "variableName": "MetaDatabaseID",
+        "libraryName": "Environment"
       }
     }
   }
